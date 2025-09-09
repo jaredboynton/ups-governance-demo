@@ -152,7 +152,7 @@ class GovernanceScorer {
     /**
      * Generate HTML dashboard for governance report
      */
-    generateDashboard(report) {
+    generateDashboard(report, workspaceId) {
         const timestamp = new Date().toISOString();
         const passCount = report.filter(api => api.status === 'PASS').length;
         const failCount = report.filter(api => api.status === 'FAIL').length;
@@ -261,6 +261,11 @@ class GovernanceScorer {
             background: #f5e6d3;
             color: #351C15;
         }
+        .score.invalid {
+            background: #d9534f;
+            color: white;
+            font-size: 1.2em;
+        }
         .violations {
             color: #7a5c4a;
             font-size: 0.9em;
@@ -280,6 +285,34 @@ class GovernanceScorer {
         .status.fail {
             background: #351C15;
             color: white;
+        }
+        .status.invalid {
+            background: #d9534f;
+            color: white;
+            font-weight: 700;
+        }
+        .postman-btn {
+            background: #FF6C37;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        .postman-btn:hover {
+            background: #E85A2A;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 108, 55, 0.3);
+        }
+        .postman-btn svg {
+            width: 16px;
+            height: 16px;
         }
         .timestamp {
             text-align: center;
@@ -316,16 +349,28 @@ class GovernanceScorer {
         </div>
         
         <div class="apis">
-            ${report.map(api => `
+            ${report.map(api => {
+                const isInvalid = api.score === 0;
+                const scoreClass = isInvalid ? 'invalid' : api.status.toLowerCase();
+                const postmanUrl = workspaceId && api.id ? 
+                    `https://www.postman.com/api-network/workspace/${workspaceId}/api/${api.id}` : 
+                    '#';
+                return `
                 <div class="api">
                     <div class="api-name">${api.name}</div>
                     <div class="api-score">
-                        <div class="violations">${api.violationsCount} violations</div>
-                        <div class="score ${api.status.toLowerCase()}">${api.score}/100</div>
-                        <div class="status ${api.status.toLowerCase()}">${api.status}</div>
+                        <div class="violations">${isInvalid ? 'Invalid specification' : api.violationsCount + ' violations'}</div>
+                        <div class="score ${scoreClass}">${isInvalid ? 'Invalid' : api.score + '/100'}</div>
+                        <div class="status ${scoreClass}">${isInvalid ? 'INVALID SPEC' : api.status}</div>
+                        ${workspaceId && api.id ? `
+                        <a href="${postmanUrl}" target="_blank" class="postman-btn">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.527.099C6.955-.744.942 3.9.099 10.473c-.843 6.572 3.8 12.584 10.373 13.428 6.573.843 12.587-3.801 13.428-10.374C24.744 6.955 20.101.943 13.527.099zm2.471 7.485a.855.855 0 0 0-.593.25l-4.453 4.453-.307-.307-.643-.643c4.389-4.376 5.18-4.418 5.996-3.753zm-4.863 4.861l4.44-4.44a.62.62 0 1 1 .847.903l-4.699 4.125-.588-.588zm.33.694l-1.1.238a.06.06 0 0 1-.067-.032.06.06 0 0 1 .01-.073l.645-.645.512.512zm-2.803-.459l1.172-1.172.879.878-1.979.426a.074.074 0 0 1-.085-.039.072.072 0 0 1 .013-.093zm-3.646 6.058a.076.076 0 0 1-.069-.083.077.077 0 0 1 .022-.046h.002l.946-.946 1.222 1.222-2.123-.147zm2.425-1.256a.228.228 0 0 0-.117.256l.203.865a.125.125 0 0 1-.211.117l-.003-.003-.934-.934 2.267-2.267.833.834-.041.596a.227.227 0 0 0 .201.258l.862.053a.125.125 0 0 1 .002.247l-.992.049a.222.222 0 0 0-.21.185l-.075.523a.125.125 0 0 1-.248.002l-.377-.927a.227.227 0 0 0-.252-.155l-.755.186a.125.125 0 0 1-.125-.211l.836-.77a.228.228 0 0 0 .043-.322l-.526-.874a.125.125 0 0 1 .182-.181l.868.527a.225.225 0 0 0 .318-.047l.694-.771a.125.125 0 0 1 .215.093l-.193.755a.224.224 0 0 0 .155.252l.924.375a.125.125 0 0 1-.002.25l-.848.075z"/></svg>
+                            View in Postman
+                        </a>
+                        ` : ''}
                     </div>
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>
         
         <div class="timestamp">
@@ -418,7 +463,7 @@ Options:
         if (jsonOutput) {
             console.log(JSON.stringify(report, null, 2));
         } else {
-            const dashboard = scorer.generateDashboard(report);
+            const dashboard = scorer.generateDashboard(report, workspaceId);
             if (outputFile) {
                 const fs = require('fs');
                 fs.writeFileSync(outputFile, dashboard);
