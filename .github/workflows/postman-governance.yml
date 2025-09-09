@@ -1,0 +1,247 @@
+name: API Governance Check
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+    paths:
+      - 'api-specs/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'api-specs/**'
+  workflow_dispatch:
+    inputs:
+      governance_threshold:
+        description: 'Governance Threshold (0-100)'
+        required: false
+        default: '70'
+        type: choice
+        options:
+          - '50'
+          - '60'
+          - '70'
+          - '80'
+          - '90'
+
+env:
+  GOVERNANCE_THRESHOLD: ${{ github.event.inputs.governance_threshold || '70' }}
+
+jobs:
+  governance-check:
+    name: API Governance Check
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install Postman CLI
+        run: |
+          npm install -g postman
+          
+      - name: Install dependencies
+        run: |
+          npm install
+          
+      - name: Install jq for JSON processing
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+          
+      - name: Login to Postman
+        run: |
+          postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+          
+      - name: Upload Specs to Postman
+        id: upload-specs
+        run: |
+          echo "Uploading API specifications to Postman Spec Hub..."
+          node scripts/upload_specs_to_postman.js reupload-all
+          
+          echo "Updating spec-ids.json with current workspace specs..."
+          node scripts/update_spec_ids.js
+        continue-on-error: true
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          
+      - name: Run Governance Quality Gate
+        id: governance-check
+        run: |
+          # Score APIs using workspace-based governance
+          export POSTMAN_API_KEY=${{ secrets.POSTMAN_API_KEY }}
+          
+          # Generate workspace governance report
+          node scripts/ups_postman_governance.js \
+            --workspace ${{ secrets.UPS_WORKSPACE_ID }} \
+            --threshold ${{ env.GOVERNANCE_THRESHOLD }} \
+            --json > governance-report.json
+          
+          # Check for failures
+          failed_count=$(cat governance-report.json | jq '[.[] | select(.status == "FAIL")] | length')
+          total_count=$(cat governance-report.json | jq '. | length')
+          
+          echo "Governance Report: $failed_count/$total_count APIs failed"
+          echo "failed_count=$failed_count" >> $GITHUB_OUTPUT
+          echo "total_count=$total_count" >> $GITHUB_OUTPUT
+          
+          # Calculate passed count for later use
+          passed_count=$((total_count - failed_count))
+          echo "passed_count=$passed_count" >> $GITHUB_OUTPUT
+          
+          if [ "$failed_count" -gt 0 ]; then
+            echo "[FAILED] $failed_count APIs do not meet governance threshold of ${{ env.GOVERNANCE_THRESHOLD }}"
+            cat governance-report.json | jq '.[] | select(.status == "FAIL") | "\(.name): \(.score)/100"'
+            exit 1
+          fi
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          
+      - name: Generate Governance Dashboard
+        if: always()
+        run: |
+          export POSTMAN_API_KEY=${{ secrets.POSTMAN_API_KEY }}
+          
+          node scripts/ups_postman_governance.js \
+            --workspace ${{ secrets.UPS_WORKSPACE_ID }} \
+            --threshold ${{ env.GOVERNANCE_THRESHOLD }} \
+            --output governance-dashboard.html
+            
+          echo "Dashboard generated successfully"
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          
+      - name: Upload Governance Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governance-report
+          path: governance-report.json
+          retention-days: 30
+          
+      - name: Upload Governance Dashboard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: governance-dashboard
+          path: governance-dashboard.html
+          retention-days: 30
+          
+      - name: Send Teams Notification
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.TEAMS_WEBHOOK_URL }}" ]; then
+            export TEAMS_WEBHOOK_URL=${{ secrets.TEAMS_WEBHOOK_URL }}
+            export BUILD_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            node scripts/teams_notifier.js --batch governance-report.json
+          else
+            echo "TEAMS_WEBHOOK_URL not configured, skipping Teams notification"
+          fi
+          
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read the governance report
+            let reportData;
+            try {
+              reportData = JSON.parse(fs.readFileSync('governance-report.json', 'utf8'));
+            } catch (error) {
+              console.log('Could not read governance report');
+              return;
+            }
+            
+            // Calculate stats
+            const totalApis = reportData.length;
+            const passedApis = reportData.filter(api => api.status === 'PASS').length;
+            const failedApis = reportData.filter(api => api.status === 'FAIL').length;
+            
+            // Format failed APIs list
+            const failedApisList = reportData
+              .filter(api => api.status === 'FAIL')
+              .map(api => `- ${api.name}: ${api.score}/100`)
+              .join('\n');
+            
+            // Create comment body
+            const commentBody = `## API Governance Report
+            
+            **Total APIs Checked:** ${totalApis}
+            **Passed:** ${passedApis}
+            **Failed:** ${failedApis}
+            **Threshold:** ${{ env.GOVERNANCE_THRESHOLD }}/100
+            
+            ${failedApis > 0 ? `### Failed APIs:\n${failedApisList}\n` : '### All APIs passed governance checks!'}
+            
+            View the full [governance dashboard](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) in the artifacts section for detailed results.
+            
+            ---
+            *Generated by UPS API Governance Check*`;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('API Governance Report')
+            );
+            
+            // Update or create comment
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
+            
+      - name: Set Job Summary
+        if: always()
+        run: |
+          echo "## API Governance Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f governance-report.json ]; then
+            total=$(cat governance-report.json | jq '. | length')
+            passed=$(cat governance-report.json | jq '[.[] | select(.status == "PASS")] | length')
+            failed=$(cat governance-report.json | jq '[.[] | select(.status == "FAIL")] | length')
+            
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Total APIs | $total |" >> $GITHUB_STEP_SUMMARY
+            echo "| Passed | $passed |" >> $GITHUB_STEP_SUMMARY
+            echo "| Failed | $failed |" >> $GITHUB_STEP_SUMMARY
+            echo "| Threshold | ${{ env.GOVERNANCE_THRESHOLD }}/100 |" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$failed" -gt 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "### Failed APIs" >> $GITHUB_STEP_SUMMARY
+              cat governance-report.json | jq -r '.[] | select(.status == "FAIL") | "- \(.name): \(.score)/100"' >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No governance report generated" >> $GITHUB_STEP_SUMMARY
+          fi

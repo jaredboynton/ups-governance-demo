@@ -5,10 +5,10 @@
   "main": "scripts/ups_postman_governance.js",
   "scripts": {
     "test": "node scripts/ups_postman_governance.js --help",
-    "score": "node scripts/ups_postman_governance.js",
+    "score": "node scripts/ups_postman_governance.js --workspace ${UPS_WORKSPACE_ID} --json",
     "notify": "node scripts/teams_notifier.js",
     "lint": "echo \"Use Postman workspace governance rules - see README for setup\"",
-    "dashboard": "node scripts/ups_postman_governance.js --output governance-dashboard.html",
+    "dashboard": "node scripts/ups_postman_governance.js --workspace ${UPS_WORKSPACE_ID} --output governance-dashboard.html",
     "update-specs": "node scripts/update_spec_ids.js"
   },
   "keywords": [

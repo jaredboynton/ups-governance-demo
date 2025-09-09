@@ -130,14 +130,6 @@ class GovernanceScorer {
         }
     }
 
-    /**
-     * Score an API using legacy Postman CLI (backwards compatibility)
-     * Note: This is deprecated, use scoreSpecViaPostman instead
-     */
-    async scoreApiViaPostman(apiId) {
-        // Forward to spec linting
-        return this.scoreSpecViaPostman(apiId);
-    }
 
     /**
      * Get governance report for all specs in a workspace
@@ -473,11 +465,6 @@ async function main() {
             describe: 'Single spec ID to analyze',
             type: 'string'
         })
-        .option('api', {
-            alias: 'a',
-            describe: 'Single API ID to analyze (legacy)',
-            type: 'string'
-        })
         .option('threshold', {
             alias: 't',
             describe: 'Minimum score threshold',
@@ -498,8 +485,8 @@ async function main() {
         .help('help')
         .alias('help', 'h')
         .check((argv) => {
-            if (!argv.workspace && !argv.spec && !argv.api) {
-                throw new Error('Must specify --workspace, --spec, or --api');
+            if (!argv.workspace && !argv.spec) {
+                throw new Error('Must specify --workspace or --spec');
             }
             return true;
         })
@@ -513,7 +500,7 @@ async function main() {
 
     const scorer = new GovernanceScorer(apiKey);
     
-    const { workspace: workspaceId, spec: specId, api: apiId, threshold, output: outputFile, json: jsonOutput } = argv;
+    const { workspace: workspaceId, spec: specId, threshold, output: outputFile, json: jsonOutput } = argv;
 
     try {
         let report;
@@ -524,16 +511,6 @@ async function main() {
             report = [{
                 name: 'Spec',
                 id: specId,
-                score: result.score,
-                violationsCount: result.violationCount || 0,
-                status: result.score >= threshold ? 'PASS' : 'FAIL'
-            }];
-        } else if (apiId) {
-            // Score single API (legacy)
-            const result = await scorer.scoreApiViaPostman(apiId);
-            report = [{
-                name: 'API',
-                id: apiId,
                 score: result.score,
                 violationsCount: result.violationCount || 0,
                 status: result.score >= threshold ? 'PASS' : 'FAIL'

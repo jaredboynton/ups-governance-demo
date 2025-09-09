@@ -160,3 +160,40 @@ git push origin main
 - **No notifications**: Verify webhook URL is correct and not expired  
 - **Cards don't display**: Check Teams channel allows external webhooks
 - **Test webhook**: `curl -X POST -H "Content-Type: application/json" -d '{"text":"Test"}' $TEAMS_WEBHOOK_URL`
+
+## Advanced Configuration
+
+### Environment Variables
+```bash
+# Set custom governance threshold
+export GOVERNANCE_THRESHOLD=80
+
+# Enable detailed error output
+export DEBUG=true
+```
+
+### Pipeline Customization
+Both pipelines support advanced customization:
+
+**Manual Triggers:**
+- Azure DevOps: Parameter selection UI with threshold options
+- GitHub Actions: `workflow_dispatch` with threshold choice input
+
+**Automatic Retries:**
+- Network failures: Exponential backoff (1s, 2s, 4s delays)
+- Rate limiting: Built-in delays between Postman API calls
+- Partial failures: Individual spec failures don't stop batch processing
+
+**Performance Optimization:**
+- NPM caching: Based on `package-lock.json` checksum  
+- Artifact compression: Automatic for JSON and HTML outputs
+- Parallel processing: Scripts handle multiple specs concurrently
+
+### Collection Generation
+```bash
+# Upload all specs with collection generation
+node scripts/upload_specs_to_postman.js upload-all --with-collections
+
+# Generate collections for existing specs only
+node scripts/upload_specs_to_postman.js generate-all-collections
+```

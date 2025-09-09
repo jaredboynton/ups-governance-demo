@@ -4,7 +4,7 @@
 
 ## Overview
 
-**Reference implementation** of an automated API governance and dashboarding system that integrates **Postman Spec Hub**, **Azure DevOps CI/CD**, and **Microsoft Teams notifications**. Demonstrates transformation of API governance from "3 days of review" to "automatic quality gate in 20 minutes" using real UPS API specifications. Spectral rules are default, so scoring accuracy isn't really indicative of actual governance criteria.
+**Reference implementation** of an automated API governance and dashboarding system that integrates **Postman Spec Hub**, **CI/CD pipelines** (Azure DevOps or GitHub Actions), and **Microsoft Teams notifications**. Demonstrates transformation of API governance from "3 days of review" to "automatic quality gate in 20 minutes" using real UPS API specifications. Spectral rules are default, so scoring accuracy isn't really indicative of actual governance criteria.
 
 All components tested end-to-end with real data.
 
@@ -16,6 +16,8 @@ All components tested end-to-end with real data.
 ups-governance-demo/
 ├── .azure/pipelines/
 │   └── postman-governance.yml        # Azure DevOps CI/CD pipeline
+├── .github/workflows/
+│   └── postman-governance.yml        # GitHub Actions workflow
 ├── api-specs/                        # Real UPS API specifications (YAML)
 │   ├── Tracking.yaml                 # Official UPS Tracking API
 │   ├── Shipping.yaml                 # Official UPS Shipping API  
@@ -32,6 +34,7 @@ ups-governance-demo/
 │   ├── teams_notifier.js             # Teams notification system  
 │   └── upload_specs_to_postman.js    # Postman Specs Hub manager with collection generation
 ├── SETUP-AZURE-VARIABLES.md          # Azure DevOps configuration guide
+├── SETUP-GITHUB-VARIABLES.md         # GitHub Actions configuration guide
 ├── SETUP-TEAMS-WEBHOOK.md            # Teams webhook setup guide
 ├── .env.example                      # Environment variable template
 ├── package.json                      # Node.js dependencies
@@ -43,7 +46,7 @@ ups-governance-demo/
 ### 1. Prerequisites
 - Node.js 20+ (LTS recommended)
 - [Postman CLI](https://learning.postman.com/docs/postman-cli/postman-cli-overview/) installed
-- Azure DevOps account (optional)
+- Azure DevOps or GitHub account (for CI/CD, optional)
 - Microsoft Teams webhook (optional)
 
 ### 2. Environment Setup
@@ -76,7 +79,7 @@ postman login --with-api-key $POSTMAN_API_KEY
 npm run dashboard
 ```
 
-## 🚀 30-Second Quick Start
+##  30-Second Quick Start
 
 ```bash
 # 1. Set environment variables
@@ -254,24 +257,139 @@ Your Azure DevOps pipeline automatically uses the workspace's governance rules:
 
 **Full Documentation**: [Postman API Governance Rules](https://learning.postman.com/docs/api-governance/configurable-rules/)
 
+## Advanced Configuration
+
+### Environment Variables
+
+All configuration can be managed through environment variables:
+
+```bash
+# Required
+POSTMAN_API_KEY=your-postman-api-key
+UPS_WORKSPACE_ID=your-workspace-id
+
+# Optional
+TEAMS_WEBHOOK_URL=your-teams-webhook-url
+GOVERNANCE_THRESHOLD=70  # Custom threshold (0-100)
+```
+
+### Custom Governance Thresholds
+
+The governance threshold can be customized at multiple levels:
+
+```bash
+# 1. Environment variable (affects all runs)
+export GOVERNANCE_THRESHOLD=80
+
+# 2. Per-script execution  
+node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold 85
+
+# 3. Pipeline manual trigger
+# Azure DevOps: Select from dropdown (50/60/70/80/90)
+# GitHub Actions: Choose in workflow_dispatch input
+```
+
+### Collection Generation Options
+
+Generate Postman collections automatically from your API specs:
+
+```bash
+# Upload specs with automatic collection generation
+node scripts/upload_specs_to_postman.js upload-all --with-collections
+
+# Generate collections for all existing specs
+node scripts/upload_specs_to_postman.js generate-all-collections
+
+# Upload single spec with collection
+node scripts/upload_specs_to_postman.js upload api-specs/Tracking.yaml --with-collections
+```
+
+### Pipeline Customization
+
+#### Node.js Version
+Both pipelines use Node.js 20.x LTS. To change:
+- **GitHub Actions**: Modify `node-version: '20.x'` in `.github/workflows/postman-governance.yml`
+- **Azure DevOps**: Modify `versionSpec: '20.x'` in `.azure/pipelines/postman-governance.yml`
+
+#### Artifact Retention
+- **GitHub Actions**: Change `retention-days: 30` in upload-artifact steps
+- **Azure DevOps**: Artifacts retained per project settings
+
+#### Cache Behavior
+- **NPM Dependencies**: Automatically cached based on `package-lock.json`
+- **Custom Cache Keys**: Modify cache key patterns in pipeline files
+
+### NPM Scripts
+
+Available shortcuts for local development:
+
+```bash
+npm run dashboard    # Generate governance dashboard  
+npm run score        # Run governance scoring
+npm run notify       # Send Teams notification
+npm run update-specs # Update spec-ids.json from workspace
+npm run test         # Show help information
+```
+
+### Error Handling & Retry Logic
+
+The system includes built-in resilience features:
+
+- **Retry Logic**: Automatic retry with exponential backoff for network failures
+- **Rate Limiting**: Built-in delays between API requests to respect Postman limits
+- **Partial Failures**: Spec upload failures don't block governance checks
+- **Graceful Degradation**: Individual spec failures don't stop batch processing
+
 ### Teams Notifications
 
 Send governance alerts to Microsoft Teams:
 
 ```bash
-# Send notification for failing API
+# Single API notification
 node scripts/teams_notifier.js \
-  --webhook "$TEAMS_WEBHOOK_URL" \
   --api "UPS Tracking API" \
-  --score 60 \
-  --violations 8 \
-  --link "https://go.postman.co/workspace/your-workspace-id"
+  --score 85 \
+  --violations 3 \
+  --link "https://[team].postman.co/workspace/your-workspace"
 
-# Send batch summary
-node scripts/teams_notifier.js \
-  --webhook "$TEAMS_WEBHOOK_URL" \
-  --batch governance-results.json
+# Batch summary from governance report
+node scripts/teams_notifier.js --batch governance-report.json
 ```
+
+The Teams notifier automatically detects build context from environment variables:
+- `USER` / `BUILD_REQUESTEDFOR`: Submitter information
+- `BUILD_URL` / `SYSTEM_TEAMFOUNDATIONCOLLECTIONURI`: Build links
+
+## Troubleshooting
+
+### Common Issues
+
+**Governance Scores Show as 0/Invalid:**
+- Verify `POSTMAN_API_KEY` is valid and has workspace access
+- Check spec IDs are correct with `node scripts/upload_specs_to_postman.js list`  
+- Ensure specs are valid OpenAPI 3.0 format
+
+**Pipeline Failures:**
+- **Azure DevOps**: Verify variable group name is exactly `postman-secrets`
+- **GitHub Actions**: Check repository secrets are correctly named
+- **Permission Issues**: Ensure service accounts have workspace access
+
+**Teams Integration:**
+- **No Cards Appearing**: Check webhook URL hasn't expired
+- **Test Webhook**: `curl -X POST -H "Content-Type: application/json" -d '{"text":"Test"}' $TEAMS_WEBHOOK_URL`
+- **Channel Settings**: Ensure channel allows external webhooks
+
+**Rate Limiting:**
+- Scripts automatically handle Postman API limits with delays
+- For large workspaces (>50 specs), allow extra time for processing
+- Network failures trigger automatic retry with backoff
+
+### Performance Tuning
+
+- **Large Workspaces**: Consider parallel processing for >20 specs
+- **CI/CD Speed**: Enable NPM caching (already configured)
+- **Build Times**: Pipeline typically completes in 2-5 minutes
+
 
 ## Real Demo Results
 
@@ -287,56 +405,62 @@ View all specifications in the public workspace: https://www.postman.com/r00tfs/
 
 ## Setup Guides
 
-### Azure DevOps Integration
+### CI/CD Platform Setup
 
-See **[SETUP-AZURE-VARIABLES.md](SETUP-AZURE-VARIABLES.md)** for complete Azure DevOps setup including:
+Choose your preferred CI/CD platform:
+
+#### Azure DevOps
+
+See **[SETUP-AZURE-VARIABLES.md](SETUP-AZURE-VARIABLES.md)** for Azure DevOps setup:
 - Creating Azure DevOps project
 - Setting up the pipeline from YAML  
-- Configuring variable groups via CLI or web interface
+- Configuring variable groups
 - Running your first governance pipeline
 
-**Required Variables:**
+#### GitHub Actions
+
+See **[SETUP-GITHUB-VARIABLES.md](SETUP-GITHUB-VARIABLES.md)** for GitHub Actions setup:
+- Forking or creating repository
+- Configuring repository secrets
+- Running workflows manually or automatically
+- Viewing results and artifacts
+
+**Required Secrets/Variables (both platforms):**
 - `POSTMAN_API_KEY` (secret)
 - `UPS_WORKSPACE_ID`  
 - `TEAMS_WEBHOOK_URL` (secret, optional)
-
-**Quick Azure CLI Setup:**
-```bash
-# Install extension and login
-az extension add --name azure-devops && az login
-
-# Create project and pipeline (see SETUP-AZURE-VARIABLES.md for details)
-az devops project create --name "ups-governance-demo"
-az pipelines variable-group create --name "postman-secrets"
-```
 
 ### Teams Integration
 
 See **[SETUP-TEAMS-WEBHOOK.md](SETUP-TEAMS-WEBHOOK.md)** for step-by-step Teams webhook setup.
 
-## Azure DevOps Pipeline
+## CI/CD Pipelines
 
-The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
+Both Azure DevOps and GitHub Actions pipelines automatically:
 
-1. **Sets up Node.js 20 LTS** on Ubuntu 22.04
-2. **Installs** Postman CLI and jq for JSON processing
-3. **Re-uploads** specs to Spec Hub (idempotent - removes duplicates)
-4. **Discovers** all specs in workspace via Postman API
-5. **Lints** specifications using Postman CLI with JSON output
-6. **Calculates** quality scores for each API
-7. **Blocks** merges if APIs score below threshold (enforced)
-8. **Generates** dynamic governance dashboard as pipeline artifact
-9. **Sends** Teams notification with results (if webhook configured)
-10. **Posts** results as PR comments with links to Postman
+1. **Set up Node.js 20 LTS** on Ubuntu 22.04
+2. **Install** Postman CLI and jq for JSON processing
+3. **Cache** NPM dependencies for faster builds
+4. **Re-upload** specs to Spec Hub (idempotent - removes duplicates)
+5. **Discover** all specs in workspace via Postman API
+6. **Lint** specifications using Postman CLI with JSON output
+7. **Calculate** quality scores for each API
+8. **Block** merges if APIs score below threshold (enforced)
+9. **Generate** dynamic governance dashboard as artifact
+10. **Send** Teams notification with results (if webhook configured)
+11. **Post** results as PR comments with links to Postman
+12. **Create** job summaries with markdown reports
 
-**Pipeline Configuration:**
-- **OS**: Ubuntu 22.04 (ubuntu-20.04 deprecated April 2025)
+**Configuration:**
+- **OS**: Ubuntu 22.04
 - **Node.js**: Version 20 LTS
-- **Artifacts**: Uses PublishPipelineArtifact@1 (modern task)
+- **Manual triggers**: Support parameterized thresholds (50/60/70/80/90)
 
 **Triggers:**
 - Push to `main` or `feature/*` branches
 - Changes to `api-specs/*` files
+- Pull requests to `main` branch
+- Manual workflow dispatch
 
 ## Teams Notifications
 

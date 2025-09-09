@@ -61,9 +61,9 @@ az pipelines create \
 2. Go to **Pipelines** → **Library** → **+ Variable group**
 3. Name the group: `postman-secrets`
 4. Add these variables:
-   - **POSTMAN_API_KEY**: `your-postman-api-key` (✅ **Mark as secret**)
+   - **POSTMAN_API_KEY**: `your-postman-api-key` ( **Mark as secret**)
    - **UPS_WORKSPACE_ID**: `your-workspace-id`
-   - **TEAMS_WEBHOOK_URL**: `your-teams-webhook-url` (✅ **Mark as secret**, optional)
+   - **TEAMS_WEBHOOK_URL**: `your-teams-webhook-url` ( **Mark as secret**, optional)
 5. Click **Save**
 
 ### Method 2: Via Azure CLI
@@ -100,9 +100,56 @@ az pipelines variable-group variable create \
   --project "$AZURE_PROJECT"
 ```
 
-## 4. Run Your First Pipeline
+## 4. Pipeline Configuration Options
 
-### Trigger Pipeline
+### Manual Trigger with Parameters
+The pipeline supports manual triggers with customizable parameters:
+
+1. **Via Azure DevOps Web Interface:**
+   - Go to **Pipelines** → Select "UPS API Governance"
+   - Click **Run pipeline**
+   - Configure parameters:
+     - **Manual Run**: `true` (enables manual trigger)
+     - **Governance Threshold**: Choose from 50, 60, 70, 80, or 90
+
+2. **Via Azure CLI:**
+```bash
+# Queue build with custom threshold
+az pipelines run \
+  --name "UPS API Governance" \
+  --parameters governanceThreshold=80 \
+  --organization "$AZURE_DEVOPS_ORG" \
+  --project "$AZURE_PROJECT"
+```
+
+### Automatic Triggers
+The pipeline automatically runs on:
+- **Push to branches**: `main`, `feature/*`  
+- **File changes**: Only when files in `api-specs/*` are modified
+- **Pull Requests**: To `main` branch affecting `api-specs/*`
+
+### Pipeline Features
+
+**Infrastructure:**
+- **OS**: Ubuntu 22.04 LTS
+- **Node.js**: Version 20.x LTS  
+- **NPM Caching**: Enabled for faster builds
+- **Dependencies**: Postman CLI, jq for JSON processing
+
+**Outputs:**
+- **Artifacts**: `governance-reports` (JSON), `governance-dashboard` (HTML)
+- **PR Comments**: Automatic results posting with governance summary
+- **Job Summaries**: Markdown reports with pass/fail details
+- **Teams Notifications**: Optional webhook integration
+
+**Quality Gates:**
+- **Threshold Enforcement**: Configurable minimum scores (default: 70/100)
+- **Build Failure**: Pipeline fails if any API scores below threshold
+- **Idempotent Uploads**: Specs are re-uploaded safely without duplicates
+
+## 5. Run Your First Pipeline
+
+### Test Pipeline Setup
 ```bash
 # Queue a new build
 az pipelines run \
@@ -113,7 +160,7 @@ az pipelines run \
 
 Or push a change to the `main` branch or `api-specs/` directory to auto-trigger.
 
-## 5. Verify Pipeline Results
+## 6. Verify Pipeline Results
 
 1. Go to **Pipelines** → **Recent runs**
 2. Click on your pipeline run
@@ -122,7 +169,39 @@ Or push a change to the `main` branch or `api-specs/` directory to auto-trigger.
    - `governance-dashboard` (HTML dashboard)
 4. Download and open `governance-dashboard.html`
 
-## 6. Permissions & Troubleshooting
+## 7. Advanced Configuration
+
+### Environment Variable Support
+The pipeline also respects local environment variables for testing:
+
+```bash
+# Set custom threshold locally
+export GOVERNANCE_THRESHOLD=80
+
+# Test governance script locally  
+node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --json
+```
+
+### Pipeline Customization Options
+
+**Modify Node.js Version:**
+- Edit `.azure/pipelines/postman-governance.yml`
+- Change `versionSpec: '20.x'` to desired version
+
+**Customize Caching:**
+- Cache key: `'npm | "$(Agent.OS)" | package-lock.json'`
+- Cache path: `$(Pipeline.Workspace)/.npm`
+
+**Artifact Retention:**
+- Artifacts retained per project settings
+- Can be modified in Azure DevOps project settings
+
+### PR Integration Features
+- **Automatic Comments**: Results posted to PR with governance summary
+- **System.AccessToken**: Used for PR API access (no configuration needed)
+- **Comment Updates**: Existing comments updated instead of creating new ones
+
+## 8. Permissions & Troubleshooting
 
 ### Required Permissions
 - **Project Administrator** (to create variable groups)
@@ -148,7 +227,7 @@ az pipelines variable-group list --organization "$AZURE_DEVOPS_ORG" --project "$
 - Check that `.azure/pipelines/postman-governance.yml` exists in your repository
 - Ensure your branch matches the trigger configuration (main/master)
 
-## Teams Webhook Setup
+## 9. Teams Webhook Setup
 
 Once you have a Teams webhook URL:
 
@@ -160,7 +239,7 @@ Once you have a Teams webhook URL:
    export TEAMS_WEBHOOK_URL="<your-webhook-url>"
    ```
 
-## Verify Setup
+## 10. Verify Setup
 
 Test the configuration:
 
