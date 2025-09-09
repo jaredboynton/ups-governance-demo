@@ -4,9 +4,9 @@
 
 **Complete automated API governance system** integrating Postman Specs Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications.
 
-**[COMPLETED] Fully Working Demo System** - All components tested end-to-end with real[EMOJI]data.
+**Fully Working Demo System** - All components tested end-to-end with real data.
 
-**[EMOJI] Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
+**Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
 
 ## Project Structure
 
@@ -65,9 +65,9 @@ npm install
 postman login --with-api-key $POSTMAN_API_KEY
 ```
 
-## Cor[EMOJI] Features
+## Core Features
 
-### [EMOJI] Dynamic API Discovery
+### Dynamic API Discovery
 
 The governance dashboard automatically discovers and scores all specs in your Postman workspace:
 - Real-time fetching from Postman API
@@ -75,7 +75,7 @@ The governance dashboard automatically discovers and scores all specs in your Po
 - Always up-to-date with your workspace
 - Automatic scoring and reporting
 
-### [EMOJI] Postman Specs Hub Integration
+### Postman Specs Hub Integration
 
 Upload and manage OpenAPI specifications in Postman's Spec Hub with automatic collection generation:
 
@@ -108,7 +108,7 @@ node scripts/upload_specs_to_postman.js generate-collection <spec-id>
 node scripts/upload_specs_to_postman.js generate-all-collections
 ```
 
-### [EMOJI] API Governance Scoring
+### API Governance Scoring
 
 Score APIs using Postman's native governance linting. The dashboard automatically fetches all specs from your Postman workspace:
 
@@ -138,9 +138,9 @@ node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold
 - **INFO violations**: -2 points each
 - **HINT violations**: -1 point each
 - **Starting score**: 100 points
-- **Pass threshold**: 70/100 (con[EMOJI]igu[EMOJI]able)
+- **Pass threshold**: 70/100 (configurable)
 
-### 🔔 Teams Notifications
+### Teams Notifications
 
 Send governance alerts to Microsoft Teams:
 
@@ -167,9 +167,9 @@ View all specifications in the public workspace: https://www.postman.com/sudo00/
 
 | API Specification | Score | Violations | Status | Issues |
 |-------------------|-------|------------|---------|---------|
-| UPS Tracking (Official) | 0/100 [FAIL[FAILED]D] Parse Error | ❌ FAIL | Complex YAML structure |  
-| UPS Tracking (Demo Good) | 60/100[FAIL[FAILED]D]| 8 warnings | ❌ FAIL | Missing $ref properties |
-| UPS Tracking (Demo Bad) | 12/100 | [FAIL[FAILED]D]7 violations | ❌ FAIL | Missing descriptions, inconsistent naming |
+| UPS Tracking (Official) | 0/100 | Parse Error | FAIL | Complex YAML structure |  
+| UPS Tracking (Demo Good) | 60/100 | 8 warnings | FAIL | Missing $ref properties |
+| UPS Tracking (Demo Bad) | 12/100 | 47 violations | FAIL | Missing descriptions, inconsistent naming |
 
 ## Setup Guides
 
@@ -207,12 +207,12 @@ The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 
 Adaptive cards include:
 
-- [EMOJI] **Qual[EMOJI]ty Score** (0-100)
-- [EMOJI] **Violation Count** [FAILED]ith severit[EMOJI[D[FAILED]NE] [COMPLETED]reakdown
-- ✅/❌ **Pass/Fail Status** based on th[EMOJI]eshold  
-- 🔗 [EMOJI]*Direct[EMOJI]L[EMOJI]nks** to Postman workspace
-- ⏰ **Timestamp** and submitter informat[EMOJI]on
-- 🎯 **Action Buttons** for review workflow
+- **Quality Score** (0-100)
+- **Violation Count** with severity breakdown
+- **Pass/Fail Status** based on threshold  
+- **Direct Links** to Postman workspace
+- **Timestamp** and submitter information
+- **Action Buttons** for review workflow
 
 ## Demo Scenarios
 
@@ -281,18 +281,18 @@ Adaptive cards include:
 **Teams Notifications Not Received:**
 - Verify webhook URL format and permissions
 - Test with simple curl command first
-- Check Teams channel notification se[DONE]tings
+- Check Teams channel notification settings
 
-## Repositor[COMPLETED] Status
+## Repository Status
 
-**✅ Production Ready**
+**Production Ready**
 - All components tested end-to-end
 - Real governance scoring with UPS APIs  
 - Teams notifications working
-- Azure DevOps [EMOJI]ipeline configured
+- Azure DevOps pipeline configured
 - Documentation complete
 
-**[EMOJI] Ready for Live Demo**
+**Ready for Live Demo**
 
 ## Contributing
 
