@@ -4,7 +4,7 @@
 
 ## Overview
 
-**Complete automated API governance system** integrating Postman Specs Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications. Spectral rules are default.
+**Reference implementation** of an automated API governance system** integrating Postman Spec Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications. Spectral rules are default.
 
 All components tested end-to-end with real data.
 
