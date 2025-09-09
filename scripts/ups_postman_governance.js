@@ -177,13 +177,20 @@ class GovernanceScorer {
             color: #351C15;
             padding: 30px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+        .header-logo {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         .header-content {
-            flex: 1;
-            text-align: center;
+            display: inline-block;
         }
         .header h1 {
             margin: 0;
@@ -194,12 +201,6 @@ class GovernanceScorer {
             margin-top: 10px;
             opacity: 0.9;
             font-size: 1.1em;
-        }
-        .header-logo {
-            width: 120px;
-            height: auto;
-            margin-left: 30px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         .stats {
             display: flex;
@@ -330,13 +331,13 @@ class GovernanceScorer {
 <body>
     <div class="container">
         <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/United_Parcel_Service_logo_2014.svg" 
+                 alt="UPS Logo" 
+                 class="header-logo">
             <div class="header-content">
                 <h1>UPS API Governance Dashboard</h1>
                 <div class="subtitle">Real-time API Quality Monitoring</div>
             </div>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/United_Parcel_Service_logo_2014.svg" 
-                 alt="UPS Logo" 
-                 class="header-logo">
         </div>
         
         <div class="stats">
