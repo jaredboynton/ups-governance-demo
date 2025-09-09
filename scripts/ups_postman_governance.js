@@ -427,7 +427,7 @@ class GovernanceScorer {
                 const isInvalid = api.score === 0;
                 const scoreClass = isInvalid ? 'invalid' : api.status.toLowerCase();
                 const postmanUrl = api.id ? 
-                    `https://www.postman.com/sudo00/ups-governance-demo/specification/${api.id}` : 
+                    `https://www.postman.com/r00tfs/ups-governance-demo/specification/${api.id}` : 
                     '#';
                 return `
                 <div class="api">

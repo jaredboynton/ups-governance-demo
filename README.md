@@ -8,7 +8,7 @@
 
 All components tested end-to-end with real data.
 
-**Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
+**Public Workspace**: https://www.postman.com/r00tfs/ups-governance-demo/overview
 
 ## Project Structure
 
@@ -277,7 +277,7 @@ node scripts/teams_notifier.js \
 
 **Live governance scores from actual UPS APIs:**
 
-View all specifications in the public workspace: https://www.postman.com/sudo00/ups-governance-demo/overview
+View all specifications in the public workspace: https://www.postman.com/r00tfs/ups-governance-demo/overview
 
 | API Specification | Score | Violations | Status | Issues |
 |-------------------|-------|------------|---------|---------|
@@ -289,12 +289,26 @@ View all specifications in the public workspace: https://www.postman.com/sudo00/
 
 ### Azure DevOps Integration
 
-See **[SETUP-AZURE-VARIABLES.md](SETUP-AZURE-VARIABLES.md)** for complete Azure DevOps pipeline configuration.
+See **[SETUP-AZURE-VARIABLES.md](SETUP-AZURE-VARIABLES.md)** for complete Azure DevOps setup including:
+- Creating Azure DevOps project
+- Setting up the pipeline from YAML  
+- Configuring variable groups via CLI or web interface
+- Running your first governance pipeline
 
 **Required Variables:**
 - `POSTMAN_API_KEY` (secret)
 - `UPS_WORKSPACE_ID`  
 - `TEAMS_WEBHOOK_URL` (secret, optional)
+
+**Quick Azure CLI Setup:**
+```bash
+# Install extension and login
+az extension add --name azure-devops && az login
+
+# Create project and pipeline (see SETUP-AZURE-VARIABLES.md for details)
+az devops project create --name "ups-governance-demo"
+az pipelines variable-group create --name "postman-secrets"
+```
 
 ### Teams Integration
 

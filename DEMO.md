@@ -53,7 +53,7 @@ node scripts/teams_notifier.js \
   --api "Demo API" \
   --score 45 \
   --violations 15 \
-  --link "https://www.postman.com/sudo00/ups-governance-demo/overview"
+  --link "https://www.postman.com/r00tfs/ups-governance-demo/overview"
 ```
 
 ## Key Talking Points
@@ -80,25 +80,83 @@ node scripts/teams_notifier.js \
 
 ## Azure DevOps Pipeline
 
-Show the pipeline file:
-- Automated spec uploads (idempotent)
-- Quality gate enforcement
+### Quick Azure Setup (5 minutes)
+```bash
+# 1. Install Azure CLI + DevOps extension
+az extension add --name azure-devops
+az login
+
+# 2. Create project and upload code
+az devops project create --name "ups-governance-demo" --organization "https://dev.azure.com/YOUR_ORG"
+git remote add azure https://dev.azure.com/YOUR_ORG/ups-governance-demo/_git/ups-governance-demo
+git push azure main
+
+# 3. Create variable group
+az pipelines variable-group create \
+  --name "postman-secrets" \
+  --variables UPS_WORKSPACE_ID="your-workspace-id" \
+  --organization "https://dev.azure.com/YOUR_ORG" \
+  --project "ups-governance-demo"
+
+# 4. Add secret API key (get group ID from step 3 output)
+az pipelines variable-group variable create \
+  --group-id "<GROUP_ID>" \
+  --name "POSTMAN_API_KEY" \
+  --secret true \
+  --value "your-postman-api-key" \
+  --organization "https://dev.azure.com/YOUR_ORG" \
+  --project "ups-governance-demo"
+
+# 5. Create and run pipeline
+az pipelines create --yml-path ".azure/pipelines/postman-governance.yml"
+```
+
+### Pipeline Features
+- Automated spec uploads (idempotent)  
+- Quality gate enforcement (fails build if score < 70)
 - Dashboard generation as artifact
 - Teams notifications on completion
+- Dynamic spec-ids.json updating
 
 ## Live Links
 
-- **Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
+- **Public Workspace**: https://www.postman.com/r00tfs/ups-governance-demo/overview
 - **Azure Pipeline**: https://dev.azure.com/jaredboynton/ups-governance-demo
+
+## Azure DevOps Demo Tips
+
+### For Customer Presentations
+1. **Pre-create Azure project** before the demo (saves 2-3 minutes)
+2. **Have variable group ready** with placeholder values
+3. **Show pipeline YAML** in VS Code for technical credibility
+4. **Demo artifact download** - customers love seeing the HTML dashboard
+
+### Pipeline Demo Flow
+```bash
+# 1. Show pipeline triggers automatically on code push
+git add api-specs/new-spec.yaml
+git commit -m "Add new API spec for governance review"
+git push origin main
+
+# 2. Navigate to Azure DevOps → Pipelines → Show running build
+# 3. Highlight key stages: Upload → Lint → Score → Block/Pass
+# 4. Download governance dashboard artifact
+# 5. Open HTML file → show governance scores
+```
 
 ## Troubleshooting
 
-If scores show as 0/Invalid:
-- Check Postman API key is valid
-- Ensure specs are valid OpenAPI 3.0
-- Try manual lint: `postman spec lint <spec-id>`
+**Azure DevOps Issues:**
+- **Variable group not found**: Check group name is exactly `postman-secrets`
+- **Permission denied**: Ensure user has Project Administrator role
+- **Pipeline won't trigger**: Verify `.azure/pipelines/postman-governance.yml` exists in repo
 
-If Teams notifications fail:
-- Verify webhook URL is correct
-- Check Teams channel permissions
-- Test with curl: `curl -X POST -H "Content-Type: application/json" -d '{"text":"Test"}' $TEAMS_WEBHOOK_URL`
+**Governance Scoring Issues:**
+- **Scores show as 0/Invalid**: Check Postman API key is valid and has workspace access
+- **Specs not uploading**: Ensure specs are valid OpenAPI 3.0 format
+- **Custom rules not applied**: Verify rules are activated in Postman workspace
+
+**Teams Integration:**
+- **No notifications**: Verify webhook URL is correct and not expired  
+- **Cards don't display**: Check Teams channel allows external webhooks
+- **Test webhook**: `curl -X POST -H "Content-Type: application/json" -d '{"text":"Test"}' $TEAMS_WEBHOOK_URL`
