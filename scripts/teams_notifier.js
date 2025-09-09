@@ -5,6 +5,9 @@
  * Sends adaptive cards to Microsoft Teams channels
  */
 
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+
 class TeamsNotifier {
     constructor(webhookUrl) {
         this.webhookUrl = webhookUrl;
@@ -251,49 +254,62 @@ class TeamsNotifier {
 
 // CLI Interface
 async function main() {
-    const args = process.argv.slice(2);
-    
-    if (args.includes('--help') || args.includes('-h')) {
-        console.log(`
-Teams Notifier for UPS API Governance
+    const argv = yargs(hideBin(process.argv))
+        .usage('Teams Notifier for UPS API Governance\n\nUsage: $0 [options]')
+        .option('webhook', {
+            alias: 'w',
+            describe: 'Teams webhook URL (or TEAMS_WEBHOOK_URL env var)',
+            type: 'string'
+        })
+        .option('api', {
+            alias: 'a',
+            describe: 'API name',
+            type: 'string'
+        })
+        .option('score', {
+            alias: 's',
+            describe: 'Quality score (0-100)',
+            type: 'number'
+        })
+        .option('violations', {
+            alias: 'v',
+            describe: 'Number of violations',
+            type: 'number'
+        })
+        .option('link', {
+            alias: 'l',
+            describe: 'Postman link for the API',
+            type: 'string'
+        })
+        .option('batch', {
+            alias: 'b',
+            describe: 'Send batch summary from JSON file',
+            type: 'string'
+        })
+        .example('$0 --webhook https://... --api "Tracking API" --score 85 --violations 3', 'Single API notification')
+        .example('$0 --webhook https://... --batch results.json', 'Batch summary')
+        .help()
+        .alias('help', 'h')
+        .check((argv) => {
+            if (!argv.webhook && !process.env.TEAMS_WEBHOOK_URL) {
+                throw new Error('Teams webhook URL required (use --webhook or TEAMS_WEBHOOK_URL env var)');
+            }
+            if (!argv.batch && !argv.api) {
+                throw new Error('Must specify either --batch or --api for single notification');
+            }
+            return true;
+        })
+        .argv;
 
-Usage: node teams_notifier.js [options]
-
-Options:
-  --webhook <url>     Teams webhook URL (or TEAMS_WEBHOOK_URL env var)
-  --api <name>        API name
-  --score <n>         Quality score (0-100)
-  --violations <n>    Number of violations
-  --link <url>        Postman link for the API
-  --batch <file>      Send batch summary from JSON file
-  --help              Show this help message
-
-Examples:
-  # Single API notification
-  node teams_notifier.js --webhook https://... --api "Tracking API" --score 85 --violations 3
-
-  # Batch summary
-  node teams_notifier.js --webhook https://... --batch results.json
-        `);
-        process.exit(0);
-    }
-
-    const webhookUrl = args[args.indexOf('--webhook') + 1] || process.env.TEAMS_WEBHOOK_URL;
-    
-    if (!webhookUrl) {
-        console.error('Error: Teams webhook URL not provided (use --webhook or TEAMS_WEBHOOK_URL env var)');
-        process.exit(1);
-    }
-
+    const webhookUrl = argv.webhook || process.env.TEAMS_WEBHOOK_URL;
     const notifier = new TeamsNotifier(webhookUrl);
 
-    if (args.includes('--batch')) {
+    if (argv.batch) {
         // Send batch summary
-        const batchFile = args[args.indexOf('--batch') + 1];
         const fs = require('fs');
         
         try {
-            const results = JSON.parse(fs.readFileSync(batchFile, 'utf8'));
+            const results = JSON.parse(fs.readFileSync(argv.batch, 'utf8'));
             const success = await notifier.sendBatchSummary(results);
             
             if (success) {
@@ -308,10 +324,10 @@ Examples:
         }
     } else {
         // Send single API notification
-        const apiName = args[args.indexOf('--api') + 1] || 'Unknown API';
-        const score = parseInt(args[args.indexOf('--score') + 1]) || 0;
-        const violations = parseInt(args[args.indexOf('--violations') + 1]) || 0;
-        const link = args[args.indexOf('--link') + 1];
+        const apiName = argv.api || 'Unknown API';
+        const score = argv.score || 0;
+        const violations = argv.violations || 0;
+        const link = argv.link;
         
         const success = await notifier.sendGovernanceNotification(
             apiName,
@@ -319,8 +335,8 @@ Examples:
             violations,
             link,
             {
-                submittedBy: process.env.USER || 'System',
-                reportUrl: process.env.BUILD_URL
+                submittedBy: process.env.USER || process.env.BUILD_REQUESTEDFOR || 'System',
+                reportUrl: process.env.BUILD_URL || process.env.SYSTEM_TEAMFOUNDATIONCOLLECTIONURI
             }
         );
         

@@ -5,6 +5,7 @@
 - **Azure Pipelines Agent**: Ubuntu 22.04 (ubuntu-20.04 deprecated April 2025)
 - **Node.js**: Version 20 LTS
 - **Postman CLI**: Installed via npm
+- **jq**: Installed via apt-get (for JSON processing)
 
 ## Required Variables
 
@@ -18,6 +19,7 @@ To configure the Azure DevOps pipeline, add these variables to your pipeline or 
 4. Add these variables:
    - **POSTMAN_API_KEY**: (Copy value from .env file - Mark as secret)
    - **UPS_WORKSPACE_ID**: (Copy value from .env file)
+   - **TEAMS_WEBHOOK_URL**: (Optional - Mark as secret)
 
 ### 2. Via Azure CLI
 
@@ -73,4 +75,7 @@ postman login --with-api-key $POSTMAN_API_KEY
 
 # Test scorer
 node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --json
+
+# Run quick demo
+./demo.sh
 ```

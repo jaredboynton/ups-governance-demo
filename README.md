@@ -67,6 +67,31 @@ npm install
 postman login --with-api-key $POSTMAN_API_KEY
 ```
 
+### 5. Quick Demo (Optional)
+```bash
+# Run the automated demo script
+./demo.sh
+
+# Or use npm shortcut to generate dashboard immediately
+npm run dashboard
+```
+
+## 🚀 30-Second Quick Start
+
+```bash
+# 1. Set environment variables
+export POSTMAN_API_KEY="your-postman-api-key"
+export UPS_WORKSPACE_ID="your-workspace-id"
+
+# 2. Install and run
+npm install
+npm run dashboard
+
+# 3. Open governance-dashboard.html in your browser
+```
+
+**That's it!** You now have a live governance dashboard pulling from your Postman workspace.
+
 ## Core Features
 
 ### Dynamic API Discovery
@@ -93,6 +118,12 @@ node scripts/upload_specs_to_postman.js upload-all
 # Upload all specs with collection generation
 node scripts/upload_specs_to_postman.js upload-all --with-collections
 
+# Re-upload all specs (idempotent - deletes existing first)
+node scripts/upload_specs_to_postman.js reupload-all
+
+# Upload demo specs only
+node scripts/upload_specs_to_postman.js upload-demo
+
 # List specs in workspace
 node scripts/upload_specs_to_postman.js list
 
@@ -115,7 +146,7 @@ Scores APIs using Postman's native governance linting; currently uses default Sp
 
 ```bash
 # Generate HTML dashboard (automatically fetches all specs from Postman API)
-node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --output dashboard.html
+node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --output governance-dashboard.html
 
 # Score entire workspace (JSON output)
 node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --json
@@ -140,6 +171,88 @@ node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold
 - **HINT violations**: -1 point each
 - **Starting score**: 100 points
 - **Pass threshold**: 70/100 (configurable)
+
+## Configuring Custom Governance Rules
+
+This demo uses Postman's native governance capabilities. To customize the scoring rules for your organization:
+
+### 1. Access Postman Governance
+1. Open Postman and navigate to your team workspace
+2. Go to **Home** → **API Governance** in the team information pane
+3. Click **Create Rule** to define custom rules
+
+### 2. Create Custom Rules (Examples)
+
+**Example 1: Require Operation Descriptions**
+```yaml
+rules:
+  operation-description-required:
+    description: "All operations must have descriptions"
+    message: "Operation {{path}} {{method}} is missing a description"
+    severity: error
+    formats:
+      - oas3
+      - oas2  
+    given: "$.paths.*[get,post,put,patch,delete]"
+    then:
+      field: description
+      function: truthy
+```
+
+**Example 2: Enforce Contact Information**
+```yaml
+rules:
+  api-contact-info:
+    description: "API must have contact information"
+    message: "API specification must include contact information"
+    severity: warning
+    given: "$.info"
+    then:
+      field: contact
+      function: truthy
+```
+
+**Example 3: UPS-Specific Naming Convention**
+```yaml
+rules:
+  ups-operation-naming:
+    description: "Operation IDs should follow UPS naming convention"
+    message: "Operation ID should start with ups or UPS"
+    severity: info
+    given: "$.paths.*.*.operationId"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^(ups|UPS)[A-Z].*"
+```
+
+### 3. Activate Rules in Your Workspace
+1. After creating rules, toggle them **ON** in the Custom Rules section
+2. Add rules to your **workspace group** to enforce across all APIs
+3. Rules will automatically apply to all specs in the workspace
+
+### 4. Test Your Rules
+```bash
+# Score a specific spec with your custom rules
+postman spec lint <spec-id> --output json
+
+# Or use the dashboard (automatically picks up workspace rules)
+npm run dashboard
+```
+
+### 5. Integration with CI/CD
+Your Azure DevOps pipeline automatically uses the workspace's governance rules:
+- Rules are fetched from your Postman workspace
+- No additional configuration needed in the pipeline
+- Custom rules affect the governance scores in real-time
+
+### Rule Severity Levels
+- **error**: Blocks pipeline (recommended for critical standards)
+- **warning**: Reduces score but doesn't block
+- **info**: Minor score reduction
+- **hint**: Minimal impact, mostly informational
+
+**Full Documentation**: [Postman API Governance Rules](https://learning.postman.com/docs/api-governance/configurable-rules/)
 
 ### Teams Notifications
 
@@ -181,7 +294,7 @@ See **[SETUP-AZURE-VARIABLES.md](SETUP-AZURE-VARIABLES.md)** for complete Azure 
 **Required Variables:**
 - `POSTMAN_API_KEY` (secret)
 - `UPS_WORKSPACE_ID`  
-- `TEAMS_WEBHOOK_URL` (secret)
+- `TEAMS_WEBHOOK_URL` (secret, optional)
 
 ### Teams Integration
 
@@ -192,14 +305,15 @@ See **[SETUP-TEAMS-WEBHOOK.md](SETUP-TEAMS-WEBHOOK.md)** for step-by-step Teams 
 The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 
 1. **Sets up Node.js 20 LTS** on Ubuntu 22.04
-2. **Installs** Postman CLI via npm and dependencies
-3. **Uploads** specs to Spec Hub
+2. **Installs** Postman CLI and jq for JSON processing
+3. **Re-uploads** specs to Spec Hub (idempotent - removes duplicates)
 4. **Discovers** all specs in workspace via Postman API
-5. **Lints** specifications using integrated governance rules via the Postman CLI
+5. **Lints** specifications using Postman CLI with JSON output
 6. **Calculates** quality scores for each API
-7. **Blocks** merges if APIs score below threshold
+7. **Blocks** merges if APIs score below threshold (enforced)
 8. **Generates** dynamic governance dashboard as pipeline artifact
-9. **Posts** results as PR comments with links to Postman
+9. **Sends** Teams notification with results (if webhook configured)
+10. **Posts** results as PR comments with links to Postman
 
 **Pipeline Configuration:**
 - **OS**: Ubuntu 22.04 (ubuntu-20.04 deprecated April 2025)
@@ -248,6 +362,28 @@ Adaptive cards include:
    node scripts/upload_specs_to_postman.js upload api-specs/ups-tracking-api-improved.yaml  
    # Result: PASS - Ready for governance review
    ```
+
+## Demo Resources
+
+### Quick Demo Script
+```bash
+# Automated demo for presentations
+./demo.sh
+```
+
+### Key Files
+- **demo.sh** - Automated demo script with pause points
+- **DEMO.md** - Quick reference for manual demo steps  
+- **.env.example** - Template for environment variables
+- **governance-dashboard.html** - Generated dashboard (git-ignored except this one)
+
+### NPM Scripts
+```bash
+npm run test       # Show help
+npm run score      # Run governance scoring
+npm run dashboard  # Generate governance dashboard
+npm run notify     # Send Teams notification
+```
 
 ## Reference API Specifications
 

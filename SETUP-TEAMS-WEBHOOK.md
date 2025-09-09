@@ -36,6 +36,8 @@
 5. **Configure the Teams channel**
 6. **Save and get the HTTP POST URL**
 
+**Note**: The UPS Governance Demo sends Adaptive Cards, which are fully supported by both native webhooks and Power Automate.
+
 ## Testing Your Webhook
 
 Once you have the webhook URL, test it:
@@ -55,6 +57,10 @@ node scripts/teams_notifier.js \
   --api "Test API" \
   --score 85 \
   --violations 3
+
+# Or test with a batch summary (like the pipeline sends)
+echo '[{"name":"Test API","score":85,"violationsCount":3,"status":"PASS"}]' > test-results.json
+node scripts/teams_notifier.js --webhook "$TEAMS_WEBHOOK_URL" --batch test-results.json
 ```
 
 ## Common Issues
@@ -121,10 +127,26 @@ The Teams notifier script sends Adaptive Cards with this structure:
 }
 ```
 
+## Integration with Demo
+
+Once your webhook is set up:
+
+```bash
+# Add to .env for local testing
+echo 'TEAMS_WEBHOOK_URL="your-webhook-url"' >> .env
+
+# The demo script will automatically use it
+./demo.sh
+
+# Or manually trigger a notification after scoring
+npm run dashboard
+node scripts/teams_notifier.js --batch governance-report.json
+```
+
 ## Next Steps
 
 1. Create webhook in your Teams channel
 2. Test with curl command above
 3. Add URL to .env file
 4. Test with teams_notifier.js script
-5. Add to Azure DevOps pipeline variables
+5. Add to Azure DevOps pipeline variables (optional)

@@ -9,6 +9,36 @@ const execPromise = util.promisify(exec);
  * Uses Postman Enterprise API to get governance report and score
  */
 
+/**
+ * Retry helper for network calls
+ */
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            
+            if (attempt === maxRetries) {
+                break;
+            }
+            
+            // Don't retry on 4xx client errors, only on 5xx server errors or network issues
+            if (error.message.includes('Failed to fetch workspace specs: 4')) {
+                throw error;
+            }
+            
+            const delay = baseDelay * Math.pow(2, attempt - 1);
+            console.log(`Attempt ${attempt} failed: ${error.message}. Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    
+    throw lastError;
+}
+
 class GovernanceScorer {
     constructor(apiKey) {
         this.apiKey = apiKey;
@@ -20,8 +50,9 @@ class GovernanceScorer {
      */
     async scoreSpecViaPostman(specId) {
         try {
+            // First try with JSON output for better parsing
             const { stdout, stderr } = await execPromise(
-                `POSTMAN_API_KEY="${this.apiKey}" postman spec lint ${specId} 2>&1`
+                `POSTMAN_API_KEY="${this.apiKey}" postman spec lint ${specId} --output json 2>&1`
             );
             
             // Check if spec not found or other error
@@ -29,24 +60,41 @@ class GovernanceScorer {
                 return { score: 0, error: `Failed to lint spec: ${stderr || stdout}` };
             }
 
-            // Parse the text output to extract violations
-            const lines = stdout.split('\n');
             let violations = [];
             
-            for (const line of lines) {
-                // Look for lines that contain severity indicators
-                if (line.includes('│')) {
-                    // Check for severity keywords (with or without ANSI codes)
-                    const lineClean = line.replace(/\x1b\[[0-9;]*m/g, ''); // Remove ANSI codes
-                    
-                    if (lineClean.includes('ERROR')) {
-                        violations.push({ severity: 'error' });
-                    } else if (lineClean.includes('WARNING')) {
-                        violations.push({ severity: 'warning' });
-                    } else if (lineClean.includes('INFO')) {
-                        violations.push({ severity: 'info' });
-                    } else if (lineClean.includes('HINT')) {
-                        violations.push({ severity: 'hint' });
+            try {
+                // Try to parse as JSON
+                const results = JSON.parse(stdout);
+                
+                // Handle the JSON structure from Postman CLI
+                if (Array.isArray(results)) {
+                    violations = results.map(result => ({
+                        severity: result.severity?.toLowerCase() || 'hint'
+                    }));
+                } else if (results.results && Array.isArray(results.results)) {
+                    violations = results.results.map(result => ({
+                        severity: result.severity?.toLowerCase() || 'hint'
+                    }));
+                }
+            } catch (parseError) {
+                // Fallback to text parsing if JSON fails
+                const lines = stdout.split('\n');
+                
+                for (const line of lines) {
+                    // Look for lines that contain severity indicators
+                    if (line.includes('│')) {
+                        // Check for severity keywords (with or without ANSI codes)
+                        const lineClean = line.replace(/\x1b\[[0-9;]*m/g, ''); // Remove ANSI codes
+                        
+                        if (lineClean.includes('ERROR')) {
+                            violations.push({ severity: 'error' });
+                        } else if (lineClean.includes('WARNING')) {
+                            violations.push({ severity: 'warning' });
+                        } else if (lineClean.includes('INFO')) {
+                            violations.push({ severity: 'info' });
+                        } else if (lineClean.includes('HINT')) {
+                            violations.push({ severity: 'hint' });
+                        }
                     }
                 }
             }
@@ -96,35 +144,50 @@ class GovernanceScorer {
      */
     async getWorkspaceGovernanceReport(workspaceId) {
         try {
-            // Get all specs in workspace using Postman Specs API
-            const response = await fetch(
-                `${this.baseUrl}/specs?workspaceId=${workspaceId}`,
-                {
-                    headers: {
-                        'X-API-Key': this.apiKey
+            // Get all specs in workspace using Postman Specs API with retry logic
+            const specs = await retryWithBackoff(async () => {
+                const response = await fetch(
+                    `${this.baseUrl}/specs?workspaceId=${workspaceId}`,
+                    {
+                        headers: {
+                            'X-API-Key': this.apiKey
+                        }
                     }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch workspace specs: ${response.status} ${response.statusText}`);
                 }
-            );
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch workspace specs: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            const specs = data.specs || [];
+                const data = await response.json();
+                return data.specs || [];
+            });
             
             const governanceReport = [];
             
             for (const spec of specs) {
-                const result = await this.scoreSpecViaPostman(spec.id);
-                governanceReport.push({
-                    name: spec.name,
-                    id: spec.id,
-                    score: result.score,
-                    violationsCount: result.violationCount || 0,
-                    status: result.score >= 70 ? 'PASS' : 'FAIL',
-                    error: result.error
-                });
+                try {
+                    const result = await this.scoreSpecViaPostman(spec.id);
+                    governanceReport.push({
+                        name: spec.name,
+                        id: spec.id,
+                        score: result.score,
+                        violationsCount: result.violationCount || 0,
+                        status: result.score >= 70 ? 'PASS' : 'FAIL',
+                        error: result.error
+                    });
+                } catch (error) {
+                    // Don't fail the entire report if one spec fails
+                    console.warn(`Failed to score spec ${spec.name}: ${error.message}`);
+                    governanceReport.push({
+                        name: spec.name,
+                        id: spec.id,
+                        score: 0,
+                        violationsCount: 0,
+                        status: 'FAIL',
+                        error: `Failed to score: ${error.message}`
+                    });
+                }
             }
             
             return governanceReport;
@@ -393,27 +456,54 @@ class GovernanceScorer {
     }
 }
 
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+
 // CLI Interface
 async function main() {
-    const args = process.argv.slice(2);
-    
-    if (args.includes('--help') || args.includes('-h')) {
-        console.log(`
-UPS Postman Governance Scorer
-
-Usage: node ups_postman_governance.js [options]
-
-Options:
-  --workspace <id>    Workspace ID to analyze
-  --spec <id>         Single spec ID to analyze
-  --api <id>          Single API ID to analyze (legacy)
-  --threshold <n>     Minimum score threshold (default: 70)
-  --output <file>     Output HTML dashboard to file
-  --json              Output raw JSON instead of dashboard
-  --help              Show this help message
-        `);
-        process.exit(0);
-    }
+    const argv = yargs(hideBin(process.argv))
+        .usage('UPS Postman Governance Scorer\n\nUsage: $0 [options]')
+        .option('workspace', {
+            alias: 'w',
+            describe: 'Workspace ID to analyze',
+            type: 'string'
+        })
+        .option('spec', {
+            alias: 's',
+            describe: 'Single spec ID to analyze',
+            type: 'string'
+        })
+        .option('api', {
+            alias: 'a',
+            describe: 'Single API ID to analyze (legacy)',
+            type: 'string'
+        })
+        .option('threshold', {
+            alias: 't',
+            describe: 'Minimum score threshold',
+            type: 'number',
+            default: 70
+        })
+        .option('output', {
+            alias: 'o',
+            describe: 'Output HTML dashboard to file',
+            type: 'string'
+        })
+        .option('json', {
+            alias: 'j',
+            describe: 'Output raw JSON instead of dashboard',
+            type: 'boolean',
+            default: false
+        })
+        .help('help')
+        .alias('help', 'h')
+        .check((argv) => {
+            if (!argv.workspace && !argv.spec && !argv.api) {
+                throw new Error('Must specify --workspace, --spec, or --api');
+            }
+            return true;
+        })
+        .argv;
 
     const apiKey = process.env.POSTMAN_API_KEY;
     if (!apiKey) {
@@ -423,17 +513,12 @@ Options:
 
     const scorer = new GovernanceScorer(apiKey);
     
-    const workspaceId = args[args.indexOf('--workspace') + 1];
-    const specId = args[args.indexOf('--spec') + 1];
-    const apiId = args[args.indexOf('--api') + 1];  // Legacy support
-    const threshold = parseInt(args[args.indexOf('--threshold') + 1]) || 70;
-    const outputFile = args[args.indexOf('--output') + 1];
-    const jsonOutput = args.includes('--json');
+    const { workspace: workspaceId, spec: specId, api: apiId, threshold, output: outputFile, json: jsonOutput } = argv;
 
     try {
         let report;
         
-        if (specId && args.includes('--spec')) {
+        if (specId) {
             // Score single spec
             const result = await scorer.scoreSpecViaPostman(specId);
             report = [{
@@ -443,7 +528,7 @@ Options:
                 violationsCount: result.violationCount || 0,
                 status: result.score >= threshold ? 'PASS' : 'FAIL'
             }];
-        } else if (apiId && args.includes('--api')) {
+        } else if (apiId) {
             // Score single API (legacy)
             const result = await scorer.scoreApiViaPostman(apiId);
             report = [{
@@ -453,12 +538,9 @@ Options:
                 violationsCount: result.violationCount || 0,
                 status: result.score >= threshold ? 'PASS' : 'FAIL'
             }];
-        } else if (workspaceId && args.includes('--workspace')) {
+        } else if (workspaceId) {
             // Score entire workspace
             report = await scorer.getWorkspaceGovernanceReport(workspaceId);
-        } else {
-            console.error('Error: Please specify --workspace, --spec, or --api');
-            process.exit(1);
         }
 
         // Check threshold
@@ -476,7 +558,7 @@ Options:
         } else {
             // Generate dashboard - if we have a workspace ID, fetch fresh data from API
             let dashboard;
-            if (workspaceId && args.includes('--workspace')) {
+            if (workspaceId) {
                 console.log('Fetching all specs from Postman API and generating dashboard...');
                 dashboard = await scorer.generateDashboardFromAPI(workspaceId);
             } else {

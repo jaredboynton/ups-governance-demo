@@ -7,6 +7,31 @@ const path = require('path');
  * Upload OpenAPI specs to Postman Spec Hub
  */
 
+/**
+ * Retry helper for network calls
+ */
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            
+            if (attempt === maxRetries) {
+                break;
+            }
+            
+            const delay = baseDelay * Math.pow(2, attempt - 1);
+            console.log(`Attempt ${attempt} failed: ${error.message}. Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    
+    throw lastError;
+}
+
 class PostmanSpecUploader {
     constructor(apiKey, workspaceId) {
         this.apiKey = apiKey;
@@ -38,24 +63,26 @@ class PostmanSpecUploader {
 
             console.log(`Uploading ${fileName} as ${finalFileName} (${content.length} characters)`);
 
-            const response = await fetch(
-                `${this.baseUrl}/specs?workspaceId=${this.workspaceId}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'X-API-Key': this.apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
+            const result = await retryWithBackoff(async () => {
+                const response = await fetch(
+                    `${this.baseUrl}/specs?workspaceId=${this.workspaceId}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'X-API-Key': this.apiKey,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(`Failed to create spec: ${response.status} ${error}`);
                 }
-            );
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`Failed to create spec: ${response.status} ${error}`);
-            }
-
-            const result = await response.json();
+                return await response.json();
+            });
             console.log(`Created spec "${name}" with ID: ${result.id}`);
             return result;
 
@@ -70,21 +97,23 @@ class PostmanSpecUploader {
      */
     async listSpecs() {
         try {
-            const response = await fetch(
-                `${this.baseUrl}/specs?workspaceId=${this.workspaceId}`,
-                {
-                    headers: {
-                        'X-API-Key': this.apiKey
+            return await retryWithBackoff(async () => {
+                const response = await fetch(
+                    `${this.baseUrl}/specs?workspaceId=${this.workspaceId}`,
+                    {
+                        headers: {
+                            'X-API-Key': this.apiKey
+                        }
                     }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed to list specs: ${response.status}`);
                 }
-            );
 
-            if (!response.ok) {
-                throw new Error(`Failed to list specs: ${response.status}`);
-            }
-
-            const result = await response.json();
-            return result.specs || [];
+                const result = await response.json();
+                return result.specs || [];
+            });
 
         } catch (error) {
             console.error('Error listing specs:', error.message);
@@ -256,6 +285,8 @@ Commands:
   upload <file>              Upload OpenAPI spec to Postman
   list                       List all specs in workspace
   upload-all                 Upload all specs in api-specs directory
+  upload-demo                Upload demo specs (bad, good, improved)
+  reupload-all               Delete and re-upload all specs (idempotent)
   delete <spec-id>           Delete a spec from Postman
   reupload <file>            Delete and re-upload a spec
   generate-collection <id>   Generate collection from spec ID
@@ -342,6 +373,109 @@ Examples:
                     // Rate limiting - wait between requests
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
+                break;
+
+            case 'reupload-all':
+                const reuploaderApiSpecsDir = 'api-specs';
+                if (!fs.existsSync(reuploaderApiSpecsDir)) {
+                    console.error(`Error: ${reuploaderApiSpecsDir} directory not found`);
+                    process.exit(1);
+                }
+
+                // Get all current specs to delete
+                const currentSpecs = await uploader.listSpecs();
+                console.log(`Found ${currentSpecs.length} existing specs in workspace`);
+
+                const reuploaderFiles = fs.readdirSync(reuploaderApiSpecsDir)
+                    .filter(file => file.endsWith('.yaml') || file.endsWith('.yml'))
+                    .filter(file => !file.includes('bad') && !file.includes('improved')); // Skip demo files
+
+                console.log(`Found ${reuploaderFiles.length} OpenAPI specs to reupload...`);
+                const reuploaderWithCollections = args.includes('--with-collections');
+
+                // Delete existing specs that match our file names
+                for (const file of reuploaderFiles) {
+                    const specName = path.basename(file, path.extname(file))
+                        .replace(/[-_]/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    const existingSpec = currentSpecs.find(s => s.name === specName);
+                    if (existingSpec) {
+                        console.log(`Deleting existing spec "${existingSpec.name}" (${existingSpec.id})`);
+                        await uploader.deleteSpec(existingSpec.id);
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
+                    }
+                }
+
+                // Upload all specs fresh
+                for (const file of reuploaderFiles) {
+                    const filePath = path.join(reuploaderApiSpecsDir, file);
+                    const specName = path.basename(file, path.extname(file))
+                        .replace(/[-_]/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    console.log(`Uploading ${file}...`);
+                    const specResult = await uploader.createSpec(specName, filePath);
+                    
+                    // Generate collection if requested
+                    if (specResult && reuploaderWithCollections) {
+                        console.log(`Generating collection for ${specName}...`);
+                        await uploader.generateCollection(specResult.id, specName + ' Collection');
+                    }
+                    
+                    // Rate limiting - wait between requests
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                console.log('Reupload completed successfully!');
+                break;
+
+            case 'upload-demo':
+                const demoSpecsDir = 'api-specs';
+                const demoFiles = [
+                    'ups-tracking-api-bad.yaml',
+                    'ups-tracking-api-good.yaml', 
+                    'ups-tracking-api-improved.yaml'
+                ];
+                
+                console.log('Uploading demo API specifications...');
+                
+                for (const file of demoFiles) {
+                    const filePath = path.join(demoSpecsDir, file);
+                    if (!fs.existsSync(filePath)) {
+                        console.error(`Demo file not found: ${filePath}`);
+                        continue;
+                    }
+                    
+                    const specName = path.basename(file, path.extname(file))
+                        .replace(/[-_]/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    // Check if already exists
+                    const existingSpecs = await uploader.listSpecs();
+                    const existingSpec = existingSpecs.find(s => s.name === specName);
+                    
+                    if (existingSpec) {
+                        console.log(`Deleting existing "${specName}"...`);
+                        await uploader.deleteSpec(existingSpec.id);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    console.log(`Uploading ${file}...`);
+                    const result = await uploader.createSpec(specName, filePath);
+                    
+                    if (result && args.includes('--with-collections')) {
+                        console.log(`Generating collection for ${specName}...`);
+                        await uploader.generateCollection(result.id, specName + ' Collection');
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                console.log('\nDemo specs uploaded successfully!');
+                console.log('Expected scores:');
+                console.log('  - Ups Tracking Api Bad: ~12/100 (FAIL)');
+                console.log('  - Ups Tracking Api Good: ~60/100 (FAIL)');
+                console.log('  - Ups Tracking Api Improved: ~75/100 (PASS)');
                 break;
 
             case 'list':

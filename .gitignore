@@ -18,6 +18,7 @@ Thumbs.db
 # IDE files
 .vscode/
 .idea/
+.demo/
 
 # Logs
 *.log

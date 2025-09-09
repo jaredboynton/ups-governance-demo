@@ -7,8 +7,9 @@
     "test": "node scripts/ups_postman_governance.js --help",
     "score": "node scripts/ups_postman_governance.js",
     "notify": "node scripts/teams_notifier.js",
-    "lint": "spectral lint api-specs/*.yaml",
-    "dashboard": "node scripts/ups_postman_governance.js --output dashboard.html"
+    "lint": "echo \"Use Postman workspace governance rules - see README for setup\"",
+    "dashboard": "node scripts/ups_postman_governance.js --output governance-dashboard.html",
+    "update-specs": "node scripts/update_spec_ids.js"
   },
   "keywords": [
     "api",
@@ -20,9 +21,9 @@
   "author": "UPS Governance Team",
   "license": "MIT",
   "dependencies": {
-    "@stoplight/spectral-cli": "^6.11.0"
+    "@stoplight/spectral-cli": "^6.11.0",
+    "yargs": "^18.0.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }
