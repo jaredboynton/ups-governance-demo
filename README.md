@@ -1,6 +1,6 @@
 # UPS API Governance Demo
 
-![Banner](banner.png)
+![Banner](banner.jpg)
 
 ## Overview
 
