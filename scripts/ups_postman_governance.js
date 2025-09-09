@@ -134,13 +134,22 @@ class GovernanceScorer {
     }
 
     /**
+     * Generate dashboard by fetching all specs from API
+     */
+    async generateDashboardFromAPI(workspaceId) {
+        // First fetch all specs and score them
+        const report = await this.getWorkspaceGovernanceReport(workspaceId);
+        return this.generateDashboard(report, workspaceId);
+    }
+
+    /**
      * Generate HTML dashboard for governance report
      */
     generateDashboard(report, workspaceId) {
         const timestamp = new Date().toISOString();
         const passCount = report.filter(api => api.status === 'PASS').length;
         const failCount = report.filter(api => api.status === 'FAIL').length;
-        const avgScore = report.reduce((sum, api) => sum + api.score, 0) / report.length;
+        const avgScore = report.length > 0 ? report.reduce((sum, api) => sum + api.score, 0) / report.length : 0;
 
         return `
 <!DOCTYPE html>
@@ -447,7 +456,15 @@ Options:
         if (jsonOutput) {
             console.log(JSON.stringify(report, null, 2));
         } else {
-            const dashboard = scorer.generateDashboard(report, workspaceId);
+            // Generate dashboard - if we have a workspace ID, fetch fresh data from API
+            let dashboard;
+            if (workspaceId && args.includes('--workspace')) {
+                console.log('Fetching all specs from Postman API and generating dashboard...');
+                dashboard = await scorer.generateDashboardFromAPI(workspaceId);
+            } else {
+                dashboard = scorer.generateDashboard(report, workspaceId);
+            }
+            
             if (outputFile) {
                 const fs = require('fs');
                 fs.writeFileSync(outputFile, dashboard);
