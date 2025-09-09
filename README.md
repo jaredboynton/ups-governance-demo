@@ -4,7 +4,7 @@
 
 ## Overview
 
-**Reference implementation** of an automated API governance system** integrating Postman Spec Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications. Spectral rules are default.
+**Reference implementation** of an automated API governance and dashboarding system that integrates **Postman Spec Hub**, **Azure DevOps CI/CD**, and **Microsoft Teams notifications**. Demonstrates transformation of API governance from "3 days of review" to "automatic quality gate in 20 minutes" using real UPS API specifications. Spectral rules are default, so scoring accuracy isn't really indicative of actual governance criteria.
 
 All components tested end-to-end with real data.
 
@@ -71,11 +71,10 @@ postman login --with-api-key $POSTMAN_API_KEY
 
 ### Dynamic API Discovery
 
-The governance dashboard automatically discovers and scores all specs in your Postman workspace:
+The governance dashboard automatically discovers and scores all specs in a Postman workspace:
 - Real-time fetching from Postman API
-- No manual configuration needed
-- Always up-to-date with your workspace
-- Automatic scoring and reporting
+- Always up-to-date, triggers on pipeline run
+- Automatically updates the dashboard, which can be published as a pipeline artifact
 
 ### Postman Specs Hub Integration
 
@@ -112,7 +111,7 @@ node scripts/upload_specs_to_postman.js generate-all-collections
 
 ### API Governance Scoring
 
-Score APIs using Postman's native governance linting. The dashboard automatically fetches all specs from your Postman workspace:
+Scores APIs using Postman's native governance linting; currently uses default Spectral ruleset, but can be customized -- as can the scoring algorithm. The dashboard automatically fetches all specs from the Postman workspace:
 
 ```bash
 # Generate HTML dashboard (automatically fetches all specs from Postman API)
@@ -134,7 +133,7 @@ node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold
 - No need to maintain local spec lists
 - Always shows current state of your API specifications
 
-**Scoring Algorithm:**
+**Demo Scoring Algorithm:**
 - **ERROR violations**: -10 points each
 - **WARNING violations**: -5 points each  
 - **INFO violations**: -2 points each
@@ -194,9 +193,9 @@ The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 
 1. **Sets up Node.js 20 LTS** on Ubuntu 22.04
 2. **Installs** Postman CLI via npm and dependencies
-3. **Uploads** specs to Postman Specs Hub
+3. **Uploads** specs to Spec Hub
 4. **Discovers** all specs in workspace via Postman API
-5. **Lints** specifications using integrated Postman governance rules (Spectral)
+5. **Lints** specifications using integrated governance rules via the Postman CLI
 6. **Calculates** quality scores for each API
 7. **Blocks** merges if APIs score below threshold
 8. **Generates** dynamic governance dashboard as pipeline artifact
@@ -250,18 +249,6 @@ Adaptive cards include:
    # Result: PASS - Ready for governance review
    ```
 
-## API Specifications
+## Reference API Specifications
 
-### Official UPS APIs (From [GitHub](https://github.com/UPS-API/api-documentation))
-- **Tracking.yaml** - Package tracking service
-- **Shipping.yaml** - Shipment creation and labeling  
-- **DangerousGoods-Ready.yaml** - Hazardous materials handling
-- **ups-rating.yaml** - Shipping rate calculation
-- **ups-address-validation.yaml** - Address standardization
-- **ups-locator.yaml** - UPS location finder
-- **ups-paperless.yaml** - Paperless document processing
-
-### Demo Examples
-- **ups-tracking-api-bad.yaml** - Intentionally poor quality (12/100)
-- **ups-tracking-api-good.yaml** - Well-structured API (60/100)
-- **ups-tracking-api-improved.yaml** - Incrementally improved (75/100)
+Official UPS APIs (From [GitHub](https://github.com/UPS-API/api-documentation))
