@@ -1,0 +1,29 @@
+{
+  "name": "ups-governance-demo",
+  "version": "1.0.0",
+  "description": "UPS API Governance Demo with Postman Integration",
+  "main": "scripts/ups_postman_governance.js",
+  "scripts": {
+    "test": "node scripts/ups_postman_governance.js --help",
+    "score": "node scripts/ups_postman_governance.js",
+    "notify": "node scripts/teams_notifier.js",
+    "lint": "spectral lint api-specs/*.yaml",
+    "dashboard": "node scripts/ups_postman_governance.js --output dashboard.html"
+  },
+  "keywords": [
+    "api",
+    "governance",
+    "postman",
+    "ups",
+    "quality"
+  ],
+  "author": "UPS Governance Team",
+  "license": "MIT",
+  "dependencies": {
+    "@stoplight/spectral-cli": "^6.11.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

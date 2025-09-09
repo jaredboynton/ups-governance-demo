@@ -1,0 +1,362 @@
+openapi: 3.0.0
+info:
+  title: UPS Tracking API
+  description: API for tracking UPS shipments and retrieving delivery information
+  version: 1.0.0
+  contact:
+    name: UPS API Support
+    email: api-support@ups.com
+  license:
+    name: UPS API License
+    url: https://developer.ups.com/license
+servers:
+  - url: https://api.ups.com/v1
+    description: Production server
+  - url: https://api-sandbox.ups.com/v1
+    description: Sandbox server for testing
+paths:
+  /track/{trackingNumber}:
+    get:
+      summary: Get tracking information for a package
+      description: Retrieves detailed tracking information for a specific UPS tracking number
+      operationId: getTrackingInfo
+      tags:
+        - Tracking
+      parameters:
+        - name: trackingNumber
+          in: path
+          required: true
+          description: The UPS tracking number
+          schema:
+            type: string
+            pattern: '^1Z[0-9A-Z]{16}$'
+            example: '1Z999AA10123456784'
+        - name: transactionId
+          in: header
+          required: true
+          description: Unique transaction identifier for request tracking
+          schema:
+            type: string
+            format: uuid
+            example: '550e8400-e29b-41d4-a716-446655440000'
+        - name: transactionSrc
+          in: header
+          required: true
+          description: Source system identifier
+          schema:
+            type: string
+            example: 'mobile-app'
+        - name: backendId
+          in: header
+          required: false
+          description: Backend system identifier for routing
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful tracking information retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackingResponse'
+        '400':
+          description: Bad request - Invalid tracking number format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tracking number not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /shipments:
+    post:
+      summary: Create a new shipment
+      description: Creates a new UPS shipment and generates shipping labels
+      operationId: createShipment
+      tags:
+        - Shipping
+      parameters:
+        - name: transactionId
+          in: header
+          required: true
+          description: Unique transaction identifier for request tracking
+          schema:
+            type: string
+            format: uuid
+        - name: transactionSrc
+          in: header
+          required: true
+          description: Source system identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Shipment details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentRequest'
+      responses:
+        '201':
+          description: Shipment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentResponse'
+        '400':
+          description: Bad request - Invalid shipment data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /address/validate:
+    post:
+      summary: Validate a shipping address
+      description: Validates and standardizes a shipping address
+      operationId: validateAddress
+      tags:
+        - Address Validation
+      parameters:
+        - name: transactionId
+          in: header
+          required: true
+          description: Unique transaction identifier for request tracking
+          schema:
+            type: string
+            format: uuid
+        - name: transactionSrc
+          in: header
+          required: true
+          description: Source system identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Address to validate
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressValidationRequest'
+      responses:
+        '200':
+          description: Address validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressValidationResponse'
+        '400':
+          description: Bad request - Invalid address data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    TrackingResponse:
+      type: object
+      required:
+        - trackingNumber
+        - status
+        - lastUpdate
+      properties:
+        trackingNumber:
+          type: string
+          description: The UPS tracking number
+        status:
+          type: string
+          description: Current package status
+          enum: [IN_TRANSIT, DELIVERED, OUT_FOR_DELIVERY, EXCEPTION]
+        deliveryDate:
+          type: string
+          format: date-time
+          description: Estimated or actual delivery date
+        lastUpdate:
+          type: string
+          format: date-time
+          description: Last status update timestamp
+        currentLocation:
+          type: object
+          properties:
+            city:
+              type: string
+            state:
+              type: string
+            country:
+              type: string
+            postalCode:
+              type: string
+    ShipmentRequest:
+      type: object
+      required:
+        - shipperAddress
+        - recipientAddress
+        - packageDetails
+      properties:
+        shipperAddress:
+          $ref: '#/components/schemas/Address'
+        recipientAddress:
+          $ref: '#/components/schemas/Address'
+        packageDetails:
+          type: object
+          required:
+            - weight
+            - dimensions
+          properties:
+            weight:
+              type: number
+              description: Package weight in pounds
+              minimum: 0.1
+              maximum: 150
+            dimensions:
+              type: object
+              required:
+                - length
+                - width
+                - height
+              properties:
+                length:
+                  type: number
+                  description: Length in inches
+                width:
+                  type: number
+                  description: Width in inches
+                height:
+                  type: number
+                  description: Height in inches
+        serviceType:
+          type: string
+          description: UPS service type
+          enum: [GROUND, NEXT_DAY_AIR, 2ND_DAY_AIR, 3_DAY_SELECT]
+    ShipmentResponse:
+      type: object
+      required:
+        - shipmentId
+        - trackingNumber
+        - labelUrl
+        - estimatedCost
+      properties:
+        shipmentId:
+          type: string
+          description: Unique shipment identifier
+        trackingNumber:
+          type: string
+          description: Generated tracking number
+        labelUrl:
+          type: string
+          format: uri
+          description: URL to download shipping label
+        estimatedCost:
+          type: number
+          format: decimal
+          description: Estimated shipping cost in USD
+    Address:
+      type: object
+      required:
+        - name
+        - addressLine1
+        - city
+        - state
+        - postalCode
+        - country
+      properties:
+        name:
+          type: string
+          description: Recipient or shipper name
+        company:
+          type: string
+          description: Company name (optional)
+        addressLine1:
+          type: string
+          description: Primary street address
+        addressLine2:
+          type: string
+          description: Secondary address information
+        city:
+          type: string
+          description: City name
+        state:
+          type: string
+          description: State or province code
+          pattern: '^[A-Z]{2}$'
+        postalCode:
+          type: string
+          description: Postal or ZIP code
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          pattern: '^[A-Z]{2}$'
+        phone:
+          type: string
+          description: Contact phone number
+    AddressValidationRequest:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+    AddressValidationResponse:
+      type: object
+      required:
+        - isValid
+        - standardizedAddress
+      properties:
+        isValid:
+          type: boolean
+          description: Whether the address is valid
+        standardizedAddress:
+          $ref: '#/components/schemas/Address'
+        suggestions:
+          type: array
+          description: Alternative address suggestions if validation fails
+          items:
+            $ref: '#/components/schemas/Address'
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - transactionId
+      properties:
+        code:
+          type: string
+          description: Error code for categorization
+        message:
+          type: string
+          description: Human-readable error message
+        transactionId:
+          type: string
+          description: Transaction ID for error tracking
+        details:
+          type: array
+          description: Additional error details
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+              issue:
+                type: string
+                description: Specific issue with the field

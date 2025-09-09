@@ -1,0 +1,92 @@
+openapi: 3.0.0
+info:
+  title: UPS Tracking API - Improved Version
+  description: Improved API showing governance transformation
+  version: 1.1.0
+  contact:
+    name: UPS API Support
+    email: api-support@ups.com
+servers:
+  - url: https://api.ups.com/v1
+    description: Production server
+paths:
+  /track/{trackingNumber}:
+    get:
+      summary: Get tracking information
+      description: Retrieves tracking information for a UPS package
+      operationId: getTrackingInfo
+      parameters:
+        - name: trackingNumber
+          in: path
+          required: true
+          description: UPS tracking number
+          schema:
+            type: string
+            pattern: '^1Z[0-9A-Z]{16}$'
+        - name: transactionId
+          in: header
+          required: true
+          description: Transaction identifier
+          schema:
+            type: string
+            format: uuid
+        - name: transactionSrc
+          in: header
+          required: true
+          description: Source system
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - trackingNumber
+                  - status
+                properties:
+                  trackingNumber:
+                    type: string
+                    description: Tracking number
+                  status:
+                    type: string
+                    description: Package status
+                    enum: [IN_TRANSIT, DELIVERED, OUT_FOR_DELIVERY]
+                  deliveryDate:
+                    type: string
+                    format: date
+                    description: Delivery date
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message

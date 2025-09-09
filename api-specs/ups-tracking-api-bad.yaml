@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  title: UPS Tracking API
+  version: 1.0.0
+servers:
+  - url: https://api.ups.com/v1
+paths:
+  /track/{trackingNumber}:
+    get:
+      operationId: getTracking
+      parameters:
+        - name: trackingNumber
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transactionid
+          in: header
+          schema:
+            type: string
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracking_number:
+                    type: string
+                  Status:
+                    type: string
+                  delivery-date:
+                    type: string
+        400:
+          description: bad request
+        500:
+          description: error
+  /shipments:
+    post:
+      parameters:
+        - name: transaction_id
+          in: header
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shipper_address:
+                  type: object
+                RecipientAddress:
+                  type: object
+                package_weight:
+                  type: number
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                type: object
+  /address/validate:
+    post:
+      responses:
+        200:
+          description: ok
