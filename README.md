@@ -6,7 +6,7 @@
 
 **[COMPLETED] Fully Working Demo System** - All components tested end-to-end with real[EMOJI]data.
 
-**🔗 Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
+**[EMOJI] Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
 
 ## Project Structure
 
@@ -26,7 +26,7 @@ ups-governance-demo/
 │   ├── ups-tracking-api-good.yaml    # Demo: High-quality spec (60/100)
 │   └── ups-tracking-api-improved.yaml # Demo: Improved spec (75/100)
 ├── scripts/                          # Governance automation
-│   ├── ups_postman_governance.js     # Main governance scorer
+│   ├── ups_postman_governance.js     # Dynamic governance scorer with API integration
 │   ├── teams_notifier.js             # Teams notification system  
 │   └── upload_specs_to_postman.js    # Postman Specs Hub manager with collection generation
 ├── SETUP-AZURE-VARIABLES.md          # Azure DevOps configuration guide
@@ -67,7 +67,15 @@ postman login --with-api-key $POSTMAN_API_KEY
 
 ## Cor[EMOJI] Features
 
-### 🎯 Postman Specs Hub Integration
+### [EMOJI] Dynamic API Discovery
+
+The governance dashboard automatically discovers and scores all specs in your Postman workspace:
+- Real-time fetching from Postman API
+- No manual configuration needed
+- Always up-to-date with your workspace
+- Automatic scoring and reporting
+
+### [EMOJI] Postman Specs Hub Integration
 
 Upload and manage OpenAPI specifications in Postman's Spec Hub with automatic collection generation:
 
@@ -102,21 +110,27 @@ node scripts/upload_specs_to_postman.js generate-all-collections
 
 ### [EMOJI] API Governance Scoring
 
-Score APIs using Postman's native governance linting:
+Score APIs using Postman's native governance linting. The dashboard automatically fetches all specs from your Postman workspace:
 
 ```bash
-# Score entire workspace
+# Generate HTML dashboard (automatically fetches all specs from Postman API)
+node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --output dashboard.html
+
+# Score entire workspace (JSON output)
 node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --json
 
 # Score specific spec
 node scripts/ups_postman_governance.js --spec <spec-id> --json
 
-# Generate HTML dashboard
-node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --output dashboard.html
-
 # Set custom threshold
 node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold 80
 ```
+
+**Dynamic Dashboard Generation:**
+- Automatically discovers all specs in your Postman workspace
+- Fetches real-time data directly from Postman API
+- No need to maintain local spec lists
+- Always shows current state of your API specifications
 
 **Scoring Algorithm:**
 - **ERROR violations**: -10 points each
@@ -124,7 +138,7 @@ node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold
 - **INFO violations**: -2 points each
 - **HINT violations**: -1 point each
 - **Starting score**: 100 points
-- **Pass threshold**: 70/100 (con[EMOJI]igurable)
+- **Pass threshold**: 70/100 (con[EMOJI]igu[EMOJI]able)
 
 ### 🔔 Teams Notifications
 
@@ -153,9 +167,9 @@ View all specifications in the public workspace: https://www.postman.com/sudo00/
 
 | API Specification | Score | Violations | Status | Issues |
 |-------------------|-------|------------|---------|---------|
-| UPS Tracking (Official) | 0/100 [FAILED] Parse Error | ❌ FAIL | Complex YAML structure |  
-| UPS Tracking (Demo Good) | 60/100[FAILED]| 8 warnings | ❌ FAIL | Missing $ref properties |
-| UPS Tracking (Demo Bad) | 12/100 | [FAILED]7 violations | ❌ FAIL | Missing descriptions, inconsistent naming |
+| UPS Tracking (Official) | 0/100 [FAIL[FAILED]D] Parse Error | ❌ FAIL | Complex YAML structure |  
+| UPS Tracking (Demo Good) | 60/100[FAIL[FAILED]D]| 8 warnings | ❌ FAIL | Missing $ref properties |
+| UPS Tracking (Demo Bad) | 12/100 | [FAIL[FAILED]D]7 violations | ❌ FAIL | Missing descriptions, inconsistent naming |
 
 ## Setup Guides
 
@@ -177,12 +191,13 @@ See **[SETUP-TEAMS-WEBHOOK.md](SETUP-TEAMS-WEBHOOK.md)** for step-by-step Teams 
 The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 
 1. **Installs** Postman CLI and dependencies
-2. **Imports** OpenAPI specs to Postman Specs Hub
-3. **Lints** specifications using Postman governance rules
-4. **Calculates** quality scores for each API
-5. **Blocks** merges if APIs score below threshold
-6. **Generates** governance dashboard as build artifact
-7. **Posts** results as PR comments with links to Postman
+2. **Discovers** all specs in workspace via Postman API
+3. **Imports** OpenAPI specs to Postman Specs Hub
+4. **Lints** specifications using Postman governance rules
+5. **Calculates** quality scores for each API
+6. **Blocks** merges if APIs score below threshold
+7. **Generates** dynamic governance dashboard as build artifact
+8. **Posts** results as PR comments with links to Postman
 
 **Triggers:**
 - Push to `main` or `feature/*` branches
@@ -193,10 +208,10 @@ The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 Adaptive cards include:
 
 - [EMOJI] **Qual[EMOJI]ty Score** (0-100)
-- 🔍 **Violation Count** [FAILED]ith severit[EMOJI] [COMPLETED]reakdown
-- ✅/❌ **Pass/Fail Status** based on threshold  
-- 🔗 [EMOJI]*Direct[EMOJI]Links** to Postman workspace
-- ⏰ **Timestamp** and submitter information
+- [EMOJI] **Violation Count** [FAILED]ith severit[EMOJI[D[FAILED]NE] [COMPLETED]reakdown
+- ✅/❌ **Pass/Fail Status** based on th[EMOJI]eshold  
+- 🔗 [EMOJI]*Direct[EMOJI]L[EMOJI]nks** to Postman workspace
+- ⏰ **Timestamp** and submitter informat[EMOJI]on
 - 🎯 **Action Buttons** for review workflow
 
 ## Demo Scenarios
@@ -266,7 +281,7 @@ Adaptive cards include:
 **Teams Notifications Not Received:**
 - Verify webhook URL format and permissions
 - Test with simple curl command first
-- Check Teams channel notification settings
+- Check Teams channel notification se[DONE]tings
 
 ## Repositor[COMPLETED] Status
 
@@ -277,7 +292,7 @@ Adaptive cards include:
 - Azure DevOps [EMOJI]ipeline configured
 - Documentation complete
 
-**🚀 Ready for Live Demo**
+**[EMOJI] Ready for Live Demo**
 
 ## Contributing
 
