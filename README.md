@@ -4,7 +4,7 @@
 
 **Complete automated API governance system** integrating Postman Specs Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications. Spectral rules are default.
 
-**Fully Working Demo System** - All components tested end-to-end with real data.
+All components tested end-to-end with real data.
 
 **Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
 
@@ -41,8 +41,8 @@ ups-governance-demo/
 ### 1. Prerequisites
 - Node.js 18+
 - [Postman CLI](https://learning.postman.com/docs/postman-cli/postman-cli-overview/) installed
-- Azure DevOps account (optional)
-- Microsoft Teams webhook (optional)
+- Azure DevOps account
+- Microsoft Teams webhook
 
 ### 2. Environment Setup
 ```bash
