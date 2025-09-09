@@ -4,7 +4,9 @@
 
 **Complete automated API governance system** integrating Postman Specs Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications.
 
-**✅ Fully Working Demo System** - All components tested end-to-end with real data.
+**[COMPLETED] Fully Working Demo System** - All components tested end-to-end with real[EMOJI]data.
+
+**🔗 Public Workspace**: https://www.postman.com/sudo00/ups-governance-demo/overview
 
 ## Project Structure
 
@@ -26,7 +28,7 @@ ups-governance-demo/
 ├── scripts/                          # Governance automation
 │   ├── ups_postman_governance.js     # Main governance scorer
 │   ├── teams_notifier.js             # Teams notification system  
-│   └── upload_specs_to_postman.js    # Postman Specs Hub manager
+│   └── upload_specs_to_postman.js    # Postman Specs Hub manager with collection generation
 ├── SETUP-AZURE-VARIABLES.md          # Azure DevOps configuration guide
 ├── SETUP-TEAMS-WEBHOOK.md            # Teams webhook setup guide
 ├── .env.example                      # Environment variable template
@@ -63,27 +65,42 @@ npm install
 postman login --with-api-key $POSTMAN_API_KEY
 ```
 
-## Core Features
+## Cor[EMOJI] Features
 
 ### 🎯 Postman Specs Hub Integration
 
-Upload and manage OpenAPI specifications in Postman's Spec Hub:
+Upload and manage OpenAPI specifications in Postman's Spec Hub with automatic collection generation:
 
 ```bash
 # Upload single spec
 node scripts/upload_specs_to_postman.js upload api-specs/Tracking.yaml
 
+# Upload single spec with collection generation
+node scripts/upload_specs_to_postman.js upload api-specs/Tracking.yaml --with-collections
+
 # Upload all specs  
 node scripts/upload_specs_to_postman.js upload-all
+
+# Upload all specs with collection generation
+node scripts/upload_specs_to_postman.js upload-all --with-collections
 
 # List specs in workspace
 node scripts/upload_specs_to_postman.js list
 
 # Re-upload (delete and recreate)
 node scripts/upload_specs_to_postman.js reupload api-specs/Tracking.yaml
+
+# Re-upload with collection generation
+node scripts/upload_specs_to_postman.js reupload api-specs/Tracking.yaml --with-collections
+
+# Generate collection from existing spec
+node scripts/upload_specs_to_postman.js generate-collection <spec-id>
+
+# Generate collections for all specs
+node scripts/upload_specs_to_postman.js generate-all-collections
 ```
 
-### 📊 API Governance Scoring
+### [EMOJI] API Governance Scoring
 
 Score APIs using Postman's native governance linting:
 
@@ -107,7 +124,7 @@ node scripts/ups_postman_governance.js --workspace $UPS_WORKSPACE_ID --threshold
 - **INFO violations**: -2 points each
 - **HINT violations**: -1 point each
 - **Starting score**: 100 points
-- **Pass threshold**: 70/100 (configurable)
+- **Pass threshold**: 70/100 (con[EMOJI]igurable)
 
 ### 🔔 Teams Notifications
 
@@ -132,11 +149,13 @@ node scripts/teams_notifier.js \
 
 **Live governance scores from actual UPS APIs:**
 
+View all specifications in the public workspace: https://www.postman.com/sudo00/ups-governance-demo/overview
+
 | API Specification | Score | Violations | Status | Issues |
 |-------------------|-------|------------|---------|---------|
-| UPS Tracking (Official) | 0/100 | Parse Error | ❌ FAIL | Complex YAML structure |  
-| UPS Tracking (Demo Good) | 60/100 | 8 warnings | ❌ FAIL | Missing $ref properties |
-| UPS Tracking (Demo Bad) | 12/100 | 47 violations | ❌ FAIL | Missing descriptions, inconsistent naming |
+| UPS Tracking (Official) | 0/100 [FAILED] Parse Error | ❌ FAIL | Complex YAML structure |  
+| UPS Tracking (Demo Good) | 60/100[FAILED]| 8 warnings | ❌ FAIL | Missing $ref properties |
+| UPS Tracking (Demo Bad) | 12/100 | [FAILED]7 violations | ❌ FAIL | Missing descriptions, inconsistent naming |
 
 ## Setup Guides
 
@@ -173,10 +192,10 @@ The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 
 Adaptive cards include:
 
-- 📊 **Quality Score** (0-100)
-- 🔍 **Violation Count** with severity breakdown
+- [EMOJI] **Qual[EMOJI]ty Score** (0-100)
+- 🔍 **Violation Count** [FAILED]ith severit[EMOJI] [COMPLETED]reakdown
 - ✅/❌ **Pass/Fail Status** based on threshold  
-- 🔗 **Direct Links** to Postman workspace
+- 🔗 [EMOJI]*Direct[EMOJI]Links** to Postman workspace
 - ⏰ **Timestamp** and submitter information
 - 🎯 **Action Buttons** for review workflow
 
@@ -249,13 +268,13 @@ Adaptive cards include:
 - Test with simple curl command first
 - Check Teams channel notification settings
 
-## Repository Status
+## Repositor[COMPLETED] Status
 
 **✅ Production Ready**
 - All components tested end-to-end
 - Real governance scoring with UPS APIs  
 - Teams notifications working
-- Azure DevOps pipeline configured
+- Azure DevOps [EMOJI]ipeline configured
 - Documentation complete
 
 **🚀 Ready for Live Demo**
