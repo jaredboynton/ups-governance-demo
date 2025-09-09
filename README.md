@@ -41,10 +41,10 @@ ups-governance-demo/
 ## Quick Start
 
 ### 1. Prerequisites
-- Node.js 18+
+- Node.js 20+ (LTS recommended)
 - [Postman CLI](https://learning.postman.com/docs/postman-cli/postman-cli-overview/) installed
-- Azure DevOps account
-- Microsoft Teams webhook
+- Azure DevOps account (optional)
+- Microsoft Teams webhook (optional)
 
 ### 2. Environment Setup
 ```bash
@@ -192,14 +192,20 @@ See **[SETUP-TEAMS-WEBHOOK.md](SETUP-TEAMS-WEBHOOK.md)** for step-by-step Teams 
 
 The pipeline (`.azure/pipelines/postman-governance.yml`) automatically:
 
-1. **Installs** Postman CLI and dependencies
-2. **Discovers** all specs in workspace via Postman API
-3. **Imports** OpenAPI specs to Postman Specs Hub
-4. **Lints** specifications using Postman governance rules
-5. **Calculates** quality scores for each API
-6. **Blocks** merges if APIs score below threshold
-7. **Generates** dynamic governance dashboard as build artifact
-8. **Posts** results as PR comments with links to Postman
+1. **Sets up Node.js 20 LTS** on Ubuntu 22.04
+2. **Installs** Postman CLI via npm and dependencies
+3. **Uploads** specs to Postman Specs Hub
+4. **Discovers** all specs in workspace via Postman API
+5. **Lints** specifications using integrated Postman governance rules (Spectral)
+6. **Calculates** quality scores for each API
+7. **Blocks** merges if APIs score below threshold
+8. **Generates** dynamic governance dashboard as pipeline artifact
+9. **Posts** results as PR comments with links to Postman
+
+**Pipeline Configuration:**
+- **OS**: Ubuntu 22.04 (ubuntu-20.04 deprecated April 2025)
+- **Node.js**: Version 20 LTS
+- **Artifacts**: Uses PublishPipelineArtifact@1 (modern task)
 
 **Triggers:**
 - Push to `main` or `feature/*` branches

@@ -1,5 +1,11 @@
 # Azure DevOps Pipeline Variables Setup
 
+## Pipeline Requirements
+
+- **Azure Pipelines Agent**: Ubuntu 22.04 (ubuntu-20.04 deprecated April 2025)
+- **Node.js**: Version 20 LTS
+- **Postman CLI**: Installed via npm
+
 ## Required Variables
 
 To configure the Azure DevOps pipeline, add these variables to your pipeline or create a variable group:
