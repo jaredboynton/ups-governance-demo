@@ -21,21 +21,41 @@ class GovernanceScorer {
     async scoreSpecViaPostman(specId) {
         try {
             const { stdout, stderr } = await execPromise(
-                `postman spec lint ${specId} -o json`
+                `POSTMAN_API_KEY="${this.apiKey}" postman spec lint ${specId} 2>&1`
             );
             
-            if (stderr && !stdout) {
-                return { score: 0, error: `Failed to lint spec: ${stderr}` };
+            // Check if spec not found or other error
+            if (stderr || stdout.includes('Error:')) {
+                return { score: 0, error: `Failed to lint spec: ${stderr || stdout}` };
             }
 
-            const lintResult = JSON.parse(stdout);
-            const violations = lintResult.violations || [];
+            // Parse the text output to extract violations
+            const lines = stdout.split('\n');
+            let violations = [];
+            
+            for (const line of lines) {
+                // Look for lines that contain severity indicators
+                if (line.includes('│')) {
+                    // Check for severity keywords (with or without ANSI codes)
+                    const lineClean = line.replace(/\x1b\[[0-9;]*m/g, ''); // Remove ANSI codes
+                    
+                    if (lineClean.includes('ERROR')) {
+                        violations.push({ severity: 'error' });
+                    } else if (lineClean.includes('WARNING')) {
+                        violations.push({ severity: 'warning' });
+                    } else if (lineClean.includes('INFO')) {
+                        violations.push({ severity: 'info' });
+                    } else if (lineClean.includes('HINT')) {
+                        violations.push({ severity: 'hint' });
+                    }
+                }
+            }
             
             // Calculate score using Postman's governance violation format
             let score = 100;
             
             violations.forEach(violation => {
-                const severity = violation.severity?.toLowerCase() || 'hint';
+                const severity = violation.severity || 'hint';
                 switch(severity) {
                     case 'error':
                         score -= 10;
@@ -64,47 +84,11 @@ class GovernanceScorer {
 
     /**
      * Score an API using legacy Postman CLI (backwards compatibility)
+     * Note: This is deprecated, use scoreSpecViaPostman instead
      */
     async scoreApiViaPostman(apiId) {
-        try {
-            const { stdout, stderr } = await execPromise(
-                `postman api lint ${apiId} --format json`
-            );
-            
-            if (stderr && !stdout) {
-                return { score: 0, error: `Failed to lint API: ${stderr}` };
-            }
-
-            const violations = JSON.parse(stdout);
-            
-            // Calculate score using Postman's governance violation format
-            let score = 100;
-            
-            violations.forEach(violation => {
-                const severity = violation.severity || 'hint';
-                switch(severity) {
-                    case 'error':
-                        score -= 10;
-                        break;
-                    case 'warn':
-                        score -= 5;
-                        break;
-                    case 'info':
-                        score -= 2;
-                        break;
-                    default: // hint
-                        score -= 1;
-                }
-            });
-            
-            return {
-                score: Math.max(0, score),
-                violations: violations,
-                violationCount: violations.length
-            };
-        } catch (error) {
-            return { score: 0, error: error.message };
-        }
+        // Forward to spec linting
+        return this.scoreSpecViaPostman(apiId);
     }
 
     /**

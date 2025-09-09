@@ -1,0 +1,45 @@
+{
+  "specs": [
+    {
+      "name": "Ups Tracking Api Good",
+      "id": "68898e26-1c7d-42bf-8627-a6e842680be3",
+      "file": "ups-tracking-api-good.yaml"
+    },
+    {
+      "name": "Tracking",
+      "id": "6db3614d-964a-4555-81a9-a160448b0fc9",
+      "file": "Tracking.yaml"
+    },
+    {
+      "name": "DangerousGoods Ready",
+      "id": "4ba68ff2-2860-4974-b4e3-e18d9a7752b3",
+      "file": "DangerousGoods-Ready.yaml"
+    },
+    {
+      "name": "Shipping",
+      "id": "ab4f9f98-350a-4e73-a4fb-6aa2d004b6fe",
+      "file": "Shipping.yaml"
+    },
+    {
+      "name": "Ups Address Validation",
+      "id": "db01cb1e-7586-4962-8ce8-74c17b875aa0",
+      "file": "ups-address-validation.yaml"
+    },
+    {
+      "name": "Ups Locator",
+      "id": "db523c1b-518e-47ff-8648-9904459b8135",
+      "file": "ups-locator.yaml"
+    },
+    {
+      "name": "Ups Paperless",
+      "id": "bb4472b2-09f9-4636-9e5d-1acce9b0e924",
+      "file": "ups-paperless.yaml"
+    },
+    {
+      "name": "Ups Rating",
+      "id": "9258b893-545b-4c11-9204-64616de51d34",
+      "file": "ups-rating.yaml"
+    }
+  ],
+  "workspaceId": "2a2e560d-97cf-4471-b1d4-a22f1beffc62"
+}
