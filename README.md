@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Complete automated API governance system** integrating Postman Specs Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications.
+**Complete automated API governance system** integrating Postman Specs Hub, Azure DevOps CI/CD, and Microsoft Teams notifications. Demonstrates transformation of API governance from "3 days → 20 minutes" using real UPS API specifications. Spectral rules are default.
 
 **Fully Working Demo System** - All components tested end-to-end with real data.
 
@@ -242,15 +242,9 @@ Adaptive cards include:
    # Result: PASS - Ready for governance review
    ```
 
-### Performance Impact
-
-- **Before**: Manual review of all APIs → 3 days average
-- **After**: Automated pre-screening → Only quality APIs reach governance team → 20 minutes average
-- **Efficiency Gain**: 95% reduction in governance team workload
-
 ## API Specifications
 
-### Official UPS APIs (From GitHub)
+### Official UPS APIs (From [GitHub](https://github.com/UPS-API/api-documentation))
 - **Tracking.yaml** - Package tracking service
 - **Shipping.yaml** - Shipment creation and labeling  
 - **DangerousGoods-Ready.yaml** - Hazardous materials handling
@@ -263,49 +257,3 @@ Adaptive cards include:
 - **ups-tracking-api-bad.yaml** - Intentionally poor quality (12/100)
 - **ups-tracking-api-good.yaml** - Well-structured API (60/100)
 - **ups-tracking-api-improved.yaml** - Incrementally improved (75/100)
-
-## Troubleshooting
-
-### Common Issues
-
-**Spec Upload Fails:**
-- Verify YAML syntax with `yamllint api-specs/yourfile.yaml`
-- Check Postman API key has workspace permissions
-- Ensure OpenAPI 3.0 format
-
-**Linting Returns 0 Violations:**  
-- Complex YAML structures may not parse correctly
-- Use simpler demo specs for testing
-- Check Postman CLI version: `postman --version`
-
-**Teams Notifications Not Received:**
-- Verify webhook URL format and permissions
-- Test with simple curl command first
-- Check Teams channel notification settings
-
-## Repository Status
-
-**Production Ready**
-- All components tested end-to-end
-- Real governance scoring with UPS APIs  
-- Teams notifications working
-- Azure DevOps pipeline configured
-- Documentation complete
-
-**Ready for Live Demo**
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)  
-5. Open Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-**Built for UPS API Governance Team** - Transforming API quality management through automation.
