@@ -337,7 +337,7 @@ class GovernanceScorer {
                 const isInvalid = api.score === 0;
                 const scoreClass = isInvalid ? 'invalid' : api.status.toLowerCase();
                 const postmanUrl = workspaceId && api.id ? 
-                    `https://www.postman.com/api-network/workspace/${workspaceId}/api/${api.id}` : 
+                    `https://sudo00.postman.co/workspace/UPS-Governance-Demo~${workspaceId}/spec/${api.id}` : 
                     '#';
                 return `
                 <div class="api">

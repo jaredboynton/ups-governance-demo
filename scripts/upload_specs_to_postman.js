@@ -145,6 +145,101 @@ class PostmanSpecUploader {
             return null;
         }
     }
+
+    /**
+     * Generate a collection from a spec
+     */
+    async generateCollection(specId, name) {
+        try {
+            const payload = {
+                name: name,
+                options: {
+                    requestNameSource: "Fallback",
+                    indentCharacter: "Space",
+                    parametersResolution: "Schema",
+                    folderStrategy: "Paths",
+                    includeAuthInfoInExample: true,
+                    enableOptionalParameters: true,
+                    keepImplicitHeaders: false,
+                    includeDeprecated: true,
+                    alwaysInheritAuthentication: false,
+                    nestedFolderHierarchy: false
+                }
+            };
+
+            console.log(`Generating collection for spec ${specId}...`);
+
+            const response = await fetch(
+                `${this.baseUrl}/specs/${specId}/generations/collection`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'X-API-Key': this.apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Failed to generate collection: ${response.status} ${error}`);
+            }
+
+            const result = await response.json();
+            console.log(`Collection generation started. Task ID: ${result.taskId}`);
+            
+            // Poll for task completion
+            const collection = await this.pollTaskStatus(specId, result.taskId);
+            if (collection) {
+                console.log(`Collection "${name}" generated successfully`);
+            }
+            return collection;
+
+        } catch (error) {
+            console.error(`Error generating collection for spec ${specId}:`, error.message);
+            return null;
+        }
+    }
+
+    /**
+     * Poll task status until completion
+     */
+    async pollTaskStatus(specId, taskId, maxAttempts = 30) {
+        try {
+            for (let i = 0; i < maxAttempts; i++) {
+                const response = await fetch(
+                    `${this.baseUrl}/specs/${specId}/tasks/${taskId}`,
+                    {
+                        headers: {
+                            'X-API-Key': this.apiKey
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Failed to check task status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.status === 'completed') {
+                    return result;
+                } else if (result.status === 'failed') {
+                    throw new Error(`Task failed: ${result.error || 'Unknown error'}`);
+                }
+                
+                // Wait 2 seconds before polling again
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            
+            throw new Error('Task timeout - exceeded maximum attempts');
+
+        } catch (error) {
+            console.error(`Error polling task ${taskId}:`, error.message);
+            return null;
+        }
+    }
 }
 
 // CLI Interface
@@ -158,11 +253,16 @@ Postman Spec Uploader
 Usage: node upload_specs_to_postman.js [command] [options]
 
 Commands:
-  upload <file>     Upload OpenAPI spec to Postman
-  list              List all specs in workspace
-  upload-all        Upload all specs in api-specs directory
-  delete <spec-id>  Delete a spec from Postman
-  reupload <file>   Delete and re-upload a spec
+  upload <file>              Upload OpenAPI spec to Postman
+  list                       List all specs in workspace
+  upload-all                 Upload all specs in api-specs directory
+  delete <spec-id>           Delete a spec from Postman
+  reupload <file>            Delete and re-upload a spec
+  generate-collection <id>   Generate collection from spec ID
+  generate-all-collections   Generate collections for all specs
+
+Options:
+  --with-collections         Also generate collections when uploading specs
 
 Environment Variables:
   POSTMAN_API_KEY   Postman API key
@@ -170,7 +270,8 @@ Environment Variables:
 
 Examples:
   node upload_specs_to_postman.js upload api-specs/Tracking.yaml
-  node upload_specs_to_postman.js upload-all
+  node upload_specs_to_postman.js upload-all --with-collections
+  node upload_specs_to_postman.js generate-collection 68898e26-1c7d-42bf-8627-a6e842680be3
   node upload_specs_to_postman.js list
         `);
         process.exit(0);
@@ -200,7 +301,13 @@ Examples:
                     .replace(/[-_]/g, ' ')
                     .replace(/\b\w/g, l => l.toUpperCase());
                 
-                await uploader.createSpec(name, filePath);
+                const specResult = await uploader.createSpec(name, filePath);
+                
+                // Generate collection if requested
+                if (specResult && args.includes('--with-collections')) {
+                    console.log('\nGenerating collection from spec...');
+                    await uploader.generateCollection(specResult.id, name + ' Collection');
+                }
                 break;
 
             case 'upload-all':
@@ -215,6 +322,7 @@ Examples:
                     .filter(file => !file.includes('bad') && !file.includes('improved')); // Skip demo files
 
                 console.log(`Found ${files.length} OpenAPI specs to upload...`);
+                const withCollections = args.includes('--with-collections');
 
                 for (const file of files) {
                     const filePath = path.join(apiSpecsDir, file);
@@ -223,7 +331,13 @@ Examples:
                         .replace(/\b\w/g, l => l.toUpperCase());
                     
                     console.log(`Uploading ${file}...`);
-                    await uploader.createSpec(specName, filePath);
+                    const specResult = await uploader.createSpec(specName, filePath);
+                    
+                    // Generate collection if requested
+                    if (specResult && withCollections) {
+                        console.log(`Generating collection for ${specName}...`);
+                        await uploader.generateCollection(specResult.id, specName + ' Collection');
+                    }
                     
                     // Rate limiting - wait between requests
                     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -267,7 +381,48 @@ Examples:
                 }
                 
                 console.log(`Re-uploading ${reuploadFile}...`);
-                await uploader.createSpec(reuploadName, reuploadFile);
+                const reuploadResult = await uploader.createSpec(reuploadName, reuploadFile);
+                
+                // Generate collection if requested
+                if (reuploadResult && args.includes('--with-collections')) {
+                    console.log('\nGenerating collection from spec...');
+                    await uploader.generateCollection(reuploadResult.id, reuploadName + ' Collection');
+                }
+                break;
+
+            case 'generate-collection':
+                const genSpecId = args[1];
+                if (!genSpecId) {
+                    console.error('Error: Please provide spec ID');
+                    process.exit(1);
+                }
+                
+                // Get spec details first
+                const allSpecs = await uploader.listSpecs();
+                const targetSpec = allSpecs.find(s => s.id === genSpecId);
+                
+                if (!targetSpec) {
+                    console.error(`Error: Spec with ID ${genSpecId} not found`);
+                    process.exit(1);
+                }
+                
+                console.log(`Generating collection for "${targetSpec.name}"...`);
+                await uploader.generateCollection(genSpecId, targetSpec.name + ' Collection');
+                break;
+
+            case 'generate-all-collections':
+                const specsForCollections = await uploader.listSpecs();
+                console.log(`Found ${specsForCollections.length} specs. Generating collections...`);
+                
+                for (const spec of specsForCollections) {
+                    console.log(`\nGenerating collection for "${spec.name}"...`);
+                    await uploader.generateCollection(spec.id, spec.name + ' Collection');
+                    
+                    // Rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+                
+                console.log('\nAll collections generated successfully!');
                 break;
 
             default:
