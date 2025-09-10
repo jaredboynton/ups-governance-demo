@@ -15,7 +15,7 @@
 9. **Click "Create"**
 10. **Copy the webhook URL** - it will look like:
     ```
-    https://outlook.office.com/webhook/xxxxx-xxxx-xxxx-xxxx-xxxxxxxxx@xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/IncomingWebhook/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    https://xxxxxxxxxxx.webhook.office.com/webhook2/xxxxx-xxxx-xxxx-xxxx-xxxxxxxxx@xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/IncomingWebhook/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     ```
 11. **Click "Done"**
 
