@@ -21,7 +21,6 @@
   "author": "UPS Governance Team",
   "license": "MIT",
   "dependencies": {
-    "@stoplight/spectral-cli": "^6.11.0",
     "yargs": "^18.0.0"
   },
   "engines": {
