@@ -9,6 +9,7 @@ id = 16ff0083-1861-46d0-bcc0-b6cf6d0ace39
 
 [config.relations.collections]
 rootDirectory = api-specs/shipping-collections
+files[] = {"id":"34829850-945046b0-0dc9-4333-b2b1-277536508ee2","path":"Shipping.json","metaData":{"generateCollectionPreferences":"{\"requestNameSource\":\"Fallback\",\"indentCharacter\":\"Space\",\"parametersResolution\":\"Example\",\"folderStrategy\":\"Tags\",\"nestedFolderHierarchy\":false,\"includeAuthInfoInExample\":true,\"enableOptionalParameters\":true,\"keepImplicitHeaders\":false,\"includeDeprecated\":true,\"alwaysInheritAuthentication\":false,\"updateCollectionSync\":true,\"requestParametersResolution\":\"Example\",\"exampleParametersResolution\":\"Example\"}"}}
 
 [config.relations.collections.metaData]
 
