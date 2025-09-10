@@ -1,0 +1,876 @@
+{
+	"info": {
+		"_postman_id": "73e4a28e-05f9-4647-bba9-4d2a62e85c5b",
+		"name": "DangerousGoods",
+		"description": "\nThe Dangerous Goods API provides the ability to determine if certain materials, such as dangerous goods or hazardous materials, can be shipped with UPS. The API's two endpoints - Chemical Reference Data and Acceptance Audit Precheck, help perform pre-checks before shipping any dangerous goods.\n# Reference\n- <a href=\"https://developer.ups.com/api/reference/dangerousgoods/business-rules\" target=\"_blank\" rel=\"noopener\">Business Rules</a>\n- <a href=\"https://developer.ups.com/api/reference/dangerousgoods/appendix\" target=\"_blank\" rel=\"noopener\">Appendix</a>\n- <a href=\"https://developer.ups.com/api/reference/dangerousgoods/errors\" target=\"_blank\" rel=\"noopener\">Errors</a>\n- <a href=\"https://developer.ups.com/api/reference/dangerousgoods/faq\" target=\"_blank\" rel=\"noopener\">FAQ</a>\n\nSimplify your workflow with the API Request Generator and create your custom request body in just seconds.\n\n<a href=\"https://developer.ups.com/apirequestgenerator\" target=\"_blank\" rel=\"noopener noreferrer\">\n  <img src=\"https://www.ups.com/assets/resources/webcontent/images/APIRequestGenerator.svg\" alt=\"API Request Generator \" style=\"width: 150px; height: 32px;\"></a>\n</a>\n\n<br/>\n<p>Try out UPS APIs with example requests using Postman and learn more about the UPS Postman Collection by visiting our <a href=\"https://developer.ups.com/api/reference/postman/guide\"\ntarget=\"_blank\" rel=\"noopener\">Postman Guide</a>. Explore API documentation and sample applications through GitHub.</p>\n\n<a href=\"https://god.gw.postman.com/run-collection/29542085-bb17460a-ed1a-4267-8c58-a8cc50a48f7a?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D29542085-bb17460a-ed1a-4267-8c58-a8cc50a48f7a%26entityType%3Dcollection%26workspaceId%3D7e7595f0-4829-4f9a-aee1-75c126b9d417\" target=\"_blank\" rel=\"noopener noreferrer\">\n  <img src=\"https://run.pstmn.io/button.svg\" alt=\"Run In Postman\" style=\"width: 128px; height: 32px;\"></a>\n<a href=\"https://github.com/UPS-API\" target=\"_blank\" rel=\"noopener noreferrer\">\n  <img src=\"https://www.ups.com/assets/resources/webcontent/images/gitHubButton.svg\" alt=\"Open in GitHub \" style=\"width: 128px; height: 32px;\">\n</a>\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "34829850-73e4a28e-05f9-4647-bba9-4d2a62e85c5b"
+	},
+	"item": [
+		{
+			"name": "Dangerous Goods",
+			"item": [
+				{
+					"name": "Chemical Reference Data",
+					"id": "b04eb177-4435-44f6-9619-fd8411efa99d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessTokenUrl",
+									"value": "https://wwwcie.ups.com/security/v1/oauth/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "transId",
+								"value": "string",
+								"description": "(Required) An identifier unique to the request. Length 32"
+							},
+							{
+								"key": "transactionSrc",
+								"value": "testing",
+								"description": "(Required) An identifier of the client/source application that is making the request.Length 512"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "x-mock-response-name",
+								"value": "successful operation",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ChemicalReferenceDataRequest\": {\n    \"IDNumber\": \"UN1088\",\n    \"ProperShippingName\": \"Acetal\",\n    \"ShipperNumber\": \"Your Shipper Number\"\n  }\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/dangerousgoods/:version/chemicalreferencedata",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"dangerousgoods",
+								":version",
+								"chemicalreferencedata"
+							],
+							"variable": [
+								{
+									"key": "version",
+									"value": "v2409",
+									"description": "(Required) Version of the API.\n\nValid values:\n- v2409\n"
+								}
+							]
+						},
+						"description": "The Chemical Reference Data endpoint of the Dangerous Goods API allows shippers look up hazardous material reference information by ID number and shipping name of the specified regulated good."
+					},
+					"response": [
+						{
+							"id": "f3f70862-2470-4a45-b635-60bdd6f9476d",
+							"name": "successful operation",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"ChemicalReferenceDataRequest\": {\n    \"IDNumber\": \"UN1088\",\n    \"ProperShippingName\": \"Acetal\",\n    \"ShipperNumber\": \"Your Shipper Number\"\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/chemicalreferencedata",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"chemicalreferencedata"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"ChemicalReferenceDataResponse\": {\n    \"Response\": {\n      \"ResponseStatus\": {\n        \"Description\": \"string\",\n        \"Code\": \"s\"\n      },\n      \"Alert\": [\n        {\n          \"Description\": \"string\",\n          \"Code\": \"string\"\n        },\n        {\n          \"Description\": \"string\",\n          \"Code\": \"s\"\n        }\n      ],\n      \"TransactionReference\": {\n        \"CustomerContext\": \"string\"\n      }\n    },\n    \"ChemicalData\": [\n      {\n        \"ChemicalDetail\": {\n          \"RegulationSet\": \"strin\",\n          \"IDNumber\": \"stri\",\n          \"HazardousMaterialsDescription\": \"string\",\n          \"ClassDivisionNumber\": \"string\",\n          \"SubRiskClass\": \"string\",\n          \"PackagingGroupType\": \"string\",\n          \"SpecialPermit\": \"str\",\n          \"TechnicalNameRequiredIndicator\": \"s\",\n          \"AdditionalShippingInformationRequiredIndicator\": \"s\",\n          \"TunnelRestrictionCode\": \"st\",\n          \"TransportCategory\": \"s\",\n          \"TransportMultiplierQuantity\": \"s\",\n          \"ChannelTunnelAcceptedIndicator\": \"s\",\n          \"ChemicalType\": \"stringstringstringstrings\",\n          \"CAToUSShipmentAllowedIndicator\": \"s\"\n        },\n        \"ProperShippingNameDetail\": {\n          \"ProperShippingName\": \"string\"\n        },\n        \"PackageQuantityLimitDetail\": [\n          {\n            \"PackageQuantityLimitTypeCode\": \"st\",\n            \"Quantity\": \"stringstringstr\",\n            \"UOM\": \"string\",\n            \"PackagingInstructionCode\": \"string\"\n          },\n          {\n            \"PackageQuantityLimitTypeCode\": \"strin\",\n            \"Quantity\": \"stringstringstr\",\n            \"UOM\": \"st\",\n            \"PackagingInstructionCode\": \"string\"\n          }\n        ]\n      },\n      {\n        \"ChemicalDetail\": {\n          \"RegulationSet\": \"strin\",\n          \"IDNumber\": \"stri\",\n          \"HazardousMaterialsDescription\": \"string\",\n          \"ClassDivisionNumber\": \"strin\",\n          \"SubRiskClass\": \"string\",\n          \"PackagingGroupType\": \"string\",\n          \"SpecialPermit\": \"stri\",\n          \"TechnicalNameRequiredIndicator\": \"s\",\n          \"AdditionalShippingInformationRequiredIndicator\": \"s\",\n          \"TunnelRestrictionCode\": \"string\",\n          \"TransportCategory\": \"s\",\n          \"TransportMultiplierQuantity\": \"s\",\n          \"ChannelTunnelAcceptedIndicator\": \"s\",\n          \"ChemicalType\": \"stringstringstringstrings\",\n          \"CAToUSShipmentAllowedIndicator\": \"s\"\n        },\n        \"ProperShippingNameDetail\": {\n          \"ProperShippingName\": \"string\"\n        },\n        \"PackageQuantityLimitDetail\": [\n          {\n            \"PackageQuantityLimitTypeCode\": \"string\",\n            \"Quantity\": \"stringstringstr\",\n            \"UOM\": \"st\",\n            \"PackagingInstructionCode\": \"string\"\n          },\n          {\n            \"PackageQuantityLimitTypeCode\": \"str\",\n            \"Quantity\": \"stringstringstr\",\n            \"UOM\": \"string\",\n            \"PackagingInstructionCode\": \"string\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "1ca8ed3b-2557-4391-92e8-cd057a9ed823",
+							"name": "Invalid Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"ChemicalReferenceDataRequest\": {\n    \"IDNumber\": \"UN1088\",\n    \"ProperShippingName\": \"Acetal\",\n    \"ShipperNumber\": \"Your Shipper Number\"\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/chemicalreferencedata",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"chemicalreferencedata"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "6e37835c-0354-48c2-81a3-83ba82130a77",
+							"name": "Unauthorized Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"ChemicalReferenceDataRequest\": {\n    \"IDNumber\": \"UN1088\",\n    \"ProperShippingName\": \"Acetal\",\n    \"ShipperNumber\": \"Your Shipper Number\"\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/chemicalreferencedata",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"chemicalreferencedata"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "5b2f8aeb-386b-4730-abfe-eb46a66904be",
+							"name": "Blocked Merchant",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"ChemicalReferenceDataRequest\": {\n    \"IDNumber\": \"UN1088\",\n    \"ProperShippingName\": \"Acetal\",\n    \"ShipperNumber\": \"Your Shipper Number\"\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/chemicalreferencedata",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"chemicalreferencedata"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "f65024ed-8b0b-472e-ba68-3a7b16fc65e8",
+							"name": "Rate Limit Exceeded",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"ChemicalReferenceDataRequest\": {\n    \"IDNumber\": \"UN1088\",\n    \"ProperShippingName\": \"Acetal\",\n    \"ShipperNumber\": \"Your Shipper Number\"\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/chemicalreferencedata",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"chemicalreferencedata"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Too Many Requests",
+							"code": 429,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Acceptance Audit Pre-check",
+					"id": "61a238c4-6989-4a8c-bcdd-dcb9537f7097",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessTokenUrl",
+									"value": "https://wwwcie.ups.com/security/v1/oauth/token",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "transId",
+								"value": "string",
+								"description": "(Required) An identifier unique to the request. Length 32"
+							},
+							{
+								"key": "transactionSrc",
+								"value": "testing",
+								"description": "(Required) An identifier of the client/source application that is making the request.Length 512"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "x-mock-response-name",
+								"value": "successful operation",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"AcceptanceAuditPreCheckRequest\": {\n    \"Request\": {\n      \"RequestOption\": \"Request\",\n      \"TransactionReference\": {\n        \"CustomerContext\": \"\"\n      }\n    },\n    \"OriginRecordTransactionTimestamp\": \"      \",\n    \"Shipment\": {\n      \"ShipperNumber\": \" \",\n      \"ShipFromAddress\": {\n        \"AddressLine\": \"226 ELMWOOD AVE\",\n        \"City\": \"BOGOTA\",\n        \"StateProvinceCode\": \"NJ\",\n        \"PostalCode\": \"7603\",\n        \"CountryCode\": \"US\"\n      },\n      \"ShipToAddress\": {\n        \"AddressLinde\": \"MY STREET 11\",\n        \"City\": \"DIEGEM\",\n        \"StateProvinceCode\": \"          \",\n        \"PostalCode\": \"1831\",\n        \"CountryCode\": \"BE\"\n      },\n      \"Service\": {\n        \"Code\": \"01\",\n        \"Description\": \"GROUND \"\n      },\n      \"RegulationSet\": \"IATA\",\n      \"Package\": {\n        \"PackageIdentifier\": \"12\",\n        \"PackageWeight\": {\n          \"Weight\": \"12\",\n          \"UnitOfMeasurement\": {\n            \"Code\": \"KGS\",\n            \"Description\": \"KILOS\"\n          }\n        },\n        \"QValue\": \"0\",\n        \"OverPackedIndicator\": \"I\",\n        \"TransportationMode\": \"PAX\",\n        \"EmergencyContact\": \"SELF\",\n        \"ChemicalRecord\": {\n          \"ChemicalRecordIdentifier\": \"12\",\n          \"ReportableQuantity\": \"RQ\",\n          \"ClassDivisionNumber\": \"3\",\n          \"SubRiskClass\": \"            \",\n          \"IDNumber\": \"UN2621\",\n          \"PackagingGroupType\": \"III\",\n          \"Quantity\": \"10\",\n          \"UOM\": \"KGS\",\n          \"PackagingInstructionCode\": \"Y344\",\n          \"ProperShippingName\": \"ACETYL METHYL CARBINOL\",\n          \"TechnicalName\": \"            \",\n          \"AdditionalDescription\": \"N\",\n          \"PackagingType\": \"Fiberboard Box\",\n          \"HazardLabelRequired\": \"LABEL IT\",\n          \"PackagingTypeQuantity\": \"22\",\n          \"CommodityRegulatedLevelCode\": \"LQ\",\n          \"TransportCategory\": \"3\",\n          \"TunnelRestrictionCode\": \"1\"\n        }\n      }\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/dangerousgoods/:version/acceptanceauditprecheck",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"dangerousgoods",
+								":version",
+								"acceptanceauditprecheck"
+							],
+							"variable": [
+								{
+									"key": "version",
+									"value": "v3",
+									"description": "(Required) API version\n\nValid values:\n- v2\n"
+								}
+							]
+						},
+						"description": "Enables shippers perform pre-checks before shipping dangerous goods using the chemical record identifier and the commodity's regulated level code."
+					},
+					"response": [
+						{
+							"id": "ee57ea50-7b38-4006-a0be-9b51feb18ba2",
+							"name": "successful operation",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"AcceptanceAuditPreCheckRequest\": {\n    \"Request\": {\n      \"RequestOption\": \"Request\",\n      \"TransactionReference\": {\n        \"CustomerContext\": \"\"\n      }\n    },\n    \"OriginRecordTransactionTimestamp\": \"      \",\n    \"Shipment\": {\n      \"ShipperNumber\": \" \",\n      \"ShipFromAddress\": {\n        \"AddressLine\": \"226 ELMWOOD AVE\",\n        \"City\": \"BOGOTA\",\n        \"StateProvinceCode\": \"NJ\",\n        \"PostalCode\": \"7603\",\n        \"CountryCode\": \"US\"\n      },\n      \"ShipToAddress\": {\n        \"AddressLinde\": \"MY STREET 11\",\n        \"City\": \"DIEGEM\",\n        \"StateProvinceCode\": \"          \",\n        \"PostalCode\": \"1831\",\n        \"CountryCode\": \"BE\"\n      },\n      \"Service\": {\n        \"Code\": \"01\",\n        \"Description\": \"GROUND \"\n      },\n      \"RegulationSet\": \"IATA\",\n      \"Package\": {\n        \"PackageIdentifier\": \"12\",\n        \"PackageWeight\": {\n          \"Weight\": \"12\",\n          \"UnitOfMeasurement\": {\n            \"Code\": \"KGS\",\n            \"Description\": \"KILOS\"\n          }\n        },\n        \"QValue\": \"0\",\n        \"OverPackedIndicator\": \"I\",\n        \"TransportationMode\": \"PAX\",\n        \"EmergencyContact\": \"SELF\",\n        \"ChemicalRecord\": {\n          \"ChemicalRecordIdentifier\": \"12\",\n          \"ReportableQuantity\": \"RQ\",\n          \"ClassDivisionNumber\": \"3\",\n          \"SubRiskClass\": \"            \",\n          \"IDNumber\": \"UN2621\",\n          \"PackagingGroupType\": \"III\",\n          \"Quantity\": \"10\",\n          \"UOM\": \"KGS\",\n          \"PackagingInstructionCode\": \"Y344\",\n          \"ProperShippingName\": \"ACETYL METHYL CARBINOL\",\n          \"TechnicalName\": \"            \",\n          \"AdditionalDescription\": \"N\",\n          \"PackagingType\": \"Fiberboard Box\",\n          \"HazardLabelRequired\": \"LABEL IT\",\n          \"PackagingTypeQuantity\": \"22\",\n          \"CommodityRegulatedLevelCode\": \"LQ\",\n          \"TransportCategory\": \"3\",\n          \"TunnelRestrictionCode\": \"1\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/acceptanceauditprecheck",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"acceptanceauditprecheck"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"AcceptanceAuditPreCheckResponse\": {\n    \"Response\": {\n      \"ResponseStatus\": {\n        \"Description\": \"string\",\n        \"Code\": \"s\"\n      },\n      \"Alert\": [\n        {\n          \"Description\": \"string\",\n          \"Code\": \"string\"\n        },\n        {\n          \"Description\": \"str\",\n          \"Code\": \"string\"\n        }\n      ],\n      \"AlertDetail\": [\n        {\n          \"Description\": \"string\",\n          \"Code\": \"st\",\n          \"ElementLevelInformation\": {\n            \"Level\": \"s\",\n            \"ElementIdentifier\": [\n              {\n                \"Value\": \"str\",\n                \"Code\": \"s\"\n              },\n              {\n                \"Value\": \"st\",\n                \"Code\": \"s\"\n              }\n            ]\n          }\n        },\n        {\n          \"Description\": \"string\",\n          \"Code\": \"s\",\n          \"ElementLevelInformation\": {\n            \"Level\": \"s\",\n            \"ElementIdentifier\": [\n              {\n                \"Value\": \"stri\",\n                \"Code\": \"s\"\n              },\n              {\n                \"Value\": \"st\",\n                \"Code\": \"s\"\n              }\n            ]\n          }\n        }\n      ],\n      \"TransactionReference\": {\n        \"CustomerContext\": \"string\"\n      }\n    },\n    \"ShipperNumber\": \"string\",\n    \"Service\": {\n      \"Code\": \"string\"\n    },\n    \"RegulationSet\": \"strin\",\n    \"PackageResults\": [\n      {\n        \"PackageIdentifier\": \"str\",\n        \"AccessibleIndicator\": \"s\",\n        \"EuropeBUIndicator\": \"s\",\n        \"ChemicalRecordResults\": [\n          {\n            \"ChemicalRecordIdentifier\": \"st\",\n            \"ADRPoints\": \"str\",\n            \"TransportCategory\": \"s\",\n            \"TunnelRestrictionCode\": \"string\",\n            \"ADRUnits\": \"strings\"\n          },\n          {\n            \"ChemicalRecordIdentifier\": \"s\",\n            \"ADRPoints\": \"stri\",\n            \"TransportCategory\": \"s\",\n            \"TunnelRestrictionCode\": \"st\",\n            \"ADRUnits\": \"strings\"\n          }\n        ]\n      },\n      {\n        \"PackageIdentifier\": \"st\",\n        \"AccessibleIndicator\": \"s\",\n        \"EuropeBUIndicator\": \"s\",\n        \"ChemicalRecordResults\": [\n          {\n            \"ChemicalRecordIdentifier\": \"st\",\n            \"ADRPoints\": \"str\",\n            \"TransportCategory\": \"s\",\n            \"TunnelRestrictionCode\": \"strin\",\n            \"ADRUnits\": \"strings\"\n          },\n          {\n            \"ChemicalRecordIdentifier\": \"st\",\n            \"ADRPoints\": \"st\",\n            \"TransportCategory\": \"s\",\n            \"TunnelRestrictionCode\": \"string\",\n            \"ADRUnits\": \"strings\"\n          }\n        ]\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "e12829ef-e46b-4e28-8e2b-58edb6781f2c",
+							"name": "Invalid Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"AcceptanceAuditPreCheckRequest\": {\n    \"Request\": {\n      \"RequestOption\": \"Request\",\n      \"TransactionReference\": {\n        \"CustomerContext\": \"\"\n      }\n    },\n    \"OriginRecordTransactionTimestamp\": \"      \",\n    \"Shipment\": {\n      \"ShipperNumber\": \" \",\n      \"ShipFromAddress\": {\n        \"AddressLine\": \"226 ELMWOOD AVE\",\n        \"City\": \"BOGOTA\",\n        \"StateProvinceCode\": \"NJ\",\n        \"PostalCode\": \"7603\",\n        \"CountryCode\": \"US\"\n      },\n      \"ShipToAddress\": {\n        \"AddressLinde\": \"MY STREET 11\",\n        \"City\": \"DIEGEM\",\n        \"StateProvinceCode\": \"          \",\n        \"PostalCode\": \"1831\",\n        \"CountryCode\": \"BE\"\n      },\n      \"Service\": {\n        \"Code\": \"01\",\n        \"Description\": \"GROUND \"\n      },\n      \"RegulationSet\": \"IATA\",\n      \"Package\": {\n        \"PackageIdentifier\": \"12\",\n        \"PackageWeight\": {\n          \"Weight\": \"12\",\n          \"UnitOfMeasurement\": {\n            \"Code\": \"KGS\",\n            \"Description\": \"KILOS\"\n          }\n        },\n        \"QValue\": \"0\",\n        \"OverPackedIndicator\": \"I\",\n        \"TransportationMode\": \"PAX\",\n        \"EmergencyContact\": \"SELF\",\n        \"ChemicalRecord\": {\n          \"ChemicalRecordIdentifier\": \"12\",\n          \"ReportableQuantity\": \"RQ\",\n          \"ClassDivisionNumber\": \"3\",\n          \"SubRiskClass\": \"            \",\n          \"IDNumber\": \"UN2621\",\n          \"PackagingGroupType\": \"III\",\n          \"Quantity\": \"10\",\n          \"UOM\": \"KGS\",\n          \"PackagingInstructionCode\": \"Y344\",\n          \"ProperShippingName\": \"ACETYL METHYL CARBINOL\",\n          \"TechnicalName\": \"            \",\n          \"AdditionalDescription\": \"N\",\n          \"PackagingType\": \"Fiberboard Box\",\n          \"HazardLabelRequired\": \"LABEL IT\",\n          \"PackagingTypeQuantity\": \"22\",\n          \"CommodityRegulatedLevelCode\": \"LQ\",\n          \"TransportCategory\": \"3\",\n          \"TunnelRestrictionCode\": \"1\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/acceptanceauditprecheck",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"acceptanceauditprecheck"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "39691124-19c9-4b4d-91c7-ec09a0144571",
+							"name": "Unauthorized Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"AcceptanceAuditPreCheckRequest\": {\n    \"Request\": {\n      \"RequestOption\": \"Request\",\n      \"TransactionReference\": {\n        \"CustomerContext\": \"\"\n      }\n    },\n    \"OriginRecordTransactionTimestamp\": \"      \",\n    \"Shipment\": {\n      \"ShipperNumber\": \" \",\n      \"ShipFromAddress\": {\n        \"AddressLine\": \"226 ELMWOOD AVE\",\n        \"City\": \"BOGOTA\",\n        \"StateProvinceCode\": \"NJ\",\n        \"PostalCode\": \"7603\",\n        \"CountryCode\": \"US\"\n      },\n      \"ShipToAddress\": {\n        \"AddressLinde\": \"MY STREET 11\",\n        \"City\": \"DIEGEM\",\n        \"StateProvinceCode\": \"          \",\n        \"PostalCode\": \"1831\",\n        \"CountryCode\": \"BE\"\n      },\n      \"Service\": {\n        \"Code\": \"01\",\n        \"Description\": \"GROUND \"\n      },\n      \"RegulationSet\": \"IATA\",\n      \"Package\": {\n        \"PackageIdentifier\": \"12\",\n        \"PackageWeight\": {\n          \"Weight\": \"12\",\n          \"UnitOfMeasurement\": {\n            \"Code\": \"KGS\",\n            \"Description\": \"KILOS\"\n          }\n        },\n        \"QValue\": \"0\",\n        \"OverPackedIndicator\": \"I\",\n        \"TransportationMode\": \"PAX\",\n        \"EmergencyContact\": \"SELF\",\n        \"ChemicalRecord\": {\n          \"ChemicalRecordIdentifier\": \"12\",\n          \"ReportableQuantity\": \"RQ\",\n          \"ClassDivisionNumber\": \"3\",\n          \"SubRiskClass\": \"            \",\n          \"IDNumber\": \"UN2621\",\n          \"PackagingGroupType\": \"III\",\n          \"Quantity\": \"10\",\n          \"UOM\": \"KGS\",\n          \"PackagingInstructionCode\": \"Y344\",\n          \"ProperShippingName\": \"ACETYL METHYL CARBINOL\",\n          \"TechnicalName\": \"            \",\n          \"AdditionalDescription\": \"N\",\n          \"PackagingType\": \"Fiberboard Box\",\n          \"HazardLabelRequired\": \"LABEL IT\",\n          \"PackagingTypeQuantity\": \"22\",\n          \"CommodityRegulatedLevelCode\": \"LQ\",\n          \"TransportCategory\": \"3\",\n          \"TunnelRestrictionCode\": \"1\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/acceptanceauditprecheck",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"acceptanceauditprecheck"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "af24e99f-6bcf-4caf-add0-f83d2b53ed7b",
+							"name": "Blocked Merchant",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"AcceptanceAuditPreCheckRequest\": {\n    \"Request\": {\n      \"RequestOption\": \"Request\",\n      \"TransactionReference\": {\n        \"CustomerContext\": \"\"\n      }\n    },\n    \"OriginRecordTransactionTimestamp\": \"      \",\n    \"Shipment\": {\n      \"ShipperNumber\": \" \",\n      \"ShipFromAddress\": {\n        \"AddressLine\": \"226 ELMWOOD AVE\",\n        \"City\": \"BOGOTA\",\n        \"StateProvinceCode\": \"NJ\",\n        \"PostalCode\": \"7603\",\n        \"CountryCode\": \"US\"\n      },\n      \"ShipToAddress\": {\n        \"AddressLinde\": \"MY STREET 11\",\n        \"City\": \"DIEGEM\",\n        \"StateProvinceCode\": \"          \",\n        \"PostalCode\": \"1831\",\n        \"CountryCode\": \"BE\"\n      },\n      \"Service\": {\n        \"Code\": \"01\",\n        \"Description\": \"GROUND \"\n      },\n      \"RegulationSet\": \"IATA\",\n      \"Package\": {\n        \"PackageIdentifier\": \"12\",\n        \"PackageWeight\": {\n          \"Weight\": \"12\",\n          \"UnitOfMeasurement\": {\n            \"Code\": \"KGS\",\n            \"Description\": \"KILOS\"\n          }\n        },\n        \"QValue\": \"0\",\n        \"OverPackedIndicator\": \"I\",\n        \"TransportationMode\": \"PAX\",\n        \"EmergencyContact\": \"SELF\",\n        \"ChemicalRecord\": {\n          \"ChemicalRecordIdentifier\": \"12\",\n          \"ReportableQuantity\": \"RQ\",\n          \"ClassDivisionNumber\": \"3\",\n          \"SubRiskClass\": \"            \",\n          \"IDNumber\": \"UN2621\",\n          \"PackagingGroupType\": \"III\",\n          \"Quantity\": \"10\",\n          \"UOM\": \"KGS\",\n          \"PackagingInstructionCode\": \"Y344\",\n          \"ProperShippingName\": \"ACETYL METHYL CARBINOL\",\n          \"TechnicalName\": \"            \",\n          \"AdditionalDescription\": \"N\",\n          \"PackagingType\": \"Fiberboard Box\",\n          \"HazardLabelRequired\": \"LABEL IT\",\n          \"PackagingTypeQuantity\": \"22\",\n          \"CommodityRegulatedLevelCode\": \"LQ\",\n          \"TransportCategory\": \"3\",\n          \"TunnelRestrictionCode\": \"1\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/acceptanceauditprecheck",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"acceptanceauditprecheck"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						},
+						{
+							"id": "f63f5b6a-0fac-4e54-8f7a-fd8088c896e3",
+							"name": "Rate Limit Exceeded",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) An identifier unique to the request. Length 32",
+										"key": "transId",
+										"value": "string"
+									},
+									{
+										"description": "(Required) An identifier of the client/source application that is making the request.Length 512",
+										"key": "transactionSrc",
+										"value": "testing"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"description": "Added as a part of security scheme: oauth2",
+										"key": "Authorization",
+										"value": "<token>"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"AcceptanceAuditPreCheckRequest\": {\n    \"Request\": {\n      \"RequestOption\": \"Request\",\n      \"TransactionReference\": {\n        \"CustomerContext\": \"\"\n      }\n    },\n    \"OriginRecordTransactionTimestamp\": \"      \",\n    \"Shipment\": {\n      \"ShipperNumber\": \" \",\n      \"ShipFromAddress\": {\n        \"AddressLine\": \"226 ELMWOOD AVE\",\n        \"City\": \"BOGOTA\",\n        \"StateProvinceCode\": \"NJ\",\n        \"PostalCode\": \"7603\",\n        \"CountryCode\": \"US\"\n      },\n      \"ShipToAddress\": {\n        \"AddressLinde\": \"MY STREET 11\",\n        \"City\": \"DIEGEM\",\n        \"StateProvinceCode\": \"          \",\n        \"PostalCode\": \"1831\",\n        \"CountryCode\": \"BE\"\n      },\n      \"Service\": {\n        \"Code\": \"01\",\n        \"Description\": \"GROUND \"\n      },\n      \"RegulationSet\": \"IATA\",\n      \"Package\": {\n        \"PackageIdentifier\": \"12\",\n        \"PackageWeight\": {\n          \"Weight\": \"12\",\n          \"UnitOfMeasurement\": {\n            \"Code\": \"KGS\",\n            \"Description\": \"KILOS\"\n          }\n        },\n        \"QValue\": \"0\",\n        \"OverPackedIndicator\": \"I\",\n        \"TransportationMode\": \"PAX\",\n        \"EmergencyContact\": \"SELF\",\n        \"ChemicalRecord\": {\n          \"ChemicalRecordIdentifier\": \"12\",\n          \"ReportableQuantity\": \"RQ\",\n          \"ClassDivisionNumber\": \"3\",\n          \"SubRiskClass\": \"            \",\n          \"IDNumber\": \"UN2621\",\n          \"PackagingGroupType\": \"III\",\n          \"Quantity\": \"10\",\n          \"UOM\": \"KGS\",\n          \"PackagingInstructionCode\": \"Y344\",\n          \"ProperShippingName\": \"ACETYL METHYL CARBINOL\",\n          \"TechnicalName\": \"            \",\n          \"AdditionalDescription\": \"N\",\n          \"PackagingType\": \"Fiberboard Box\",\n          \"HazardLabelRequired\": \"LABEL IT\",\n          \"PackagingTypeQuantity\": \"22\",\n          \"CommodityRegulatedLevelCode\": \"LQ\",\n          \"TransportCategory\": \"3\",\n          \"TunnelRestrictionCode\": \"1\"\n        }\n      }\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/dangerousgoods/:version/acceptanceauditprecheck",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"dangerousgoods",
+										":version",
+										"acceptanceauditprecheck"
+									],
+									"variable": [
+										{
+											"key": "version"
+										}
+									]
+								}
+							},
+							"status": "Too Many Requests",
+							"code": 429,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"response\": {\n    \"errors\": [\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      },\n      {\n        \"code\": \"string\",\n        \"message\": \"string\"\n      }\n    ]\n  }\n}"
+						}
+					]
+				}
+			],
+			"id": "33923827-1ba9-40fa-9ac6-f31048405fc8"
+		}
+	],
+	"variable": [
+		{
+			"id": "95df8017-e52c-4e3e-aef3-08ea6afa129e",
+			"key": "baseUrl",
+			"value": "https://wwwcie.ups.com/api"
+		}
+	]
+}

@@ -9,6 +9,7 @@ id = 9fa5aacd-374f-4b2a-bad8-5f826661299c
 
 [config.relations.collections]
 rootDirectory = postman/collections
+files[] = {"id":"34829850-73e4a28e-05f9-4647-bba9-4d2a62e85c5b","path":"DangerousGoods.json","metaData":{"generateCollectionPreferences":"{\"requestNameSource\":\"Fallback\",\"indentCharacter\":\"Space\",\"parametersResolution\":\"Example\",\"folderStrategy\":\"Tags\",\"nestedFolderHierarchy\":false,\"includeAuthInfoInExample\":true,\"enableOptionalParameters\":true,\"keepImplicitHeaders\":false,\"includeDeprecated\":true,\"alwaysInheritAuthentication\":false,\"updateCollectionSync\":true,\"requestParametersResolution\":\"Example\",\"exampleParametersResolution\":\"Example\"}"}}
 
 [config.relations.collections.metaData]
 
