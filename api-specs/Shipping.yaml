@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Ship
+  title: Ship API.
   termsOfService: https://www.ups.com/upsdeveloperkit/assets/html/serviceAgreement.html
   version: ''
   description: |
